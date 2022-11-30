@@ -3,21 +3,27 @@ from lessonScraper import scrapeLessons
 from calendarToIcs import saveToIcs
 from googleCalendar import GoogleCalendar
 from compareEvents import compareEvents
+import configparser
 
 url = "https://www.unive.it/data/46/1" #url to scrape from 
+config = configparser.ConfigParser()
+config.read("config.toml")
 
-CREDENTIALS_FILE = '' #token path (used for google calendar only)
-
-oraribetter = scrapeLessons(url) #scrape stuff from website (returns lists of lessons)
+oraribetter = scrapeLessons(url)
 print(str(len(oraribetter)) + " events found")
 
-googleC = GoogleCalendar(CREDENTIALS_FILE) 
-deleteCalendars, newCalendars = compareEvents(oraribetter, googleC.getFromGoogleCalendar()) #compare the newly scraped lessons with the ones that are saved on google calendar
+if config['general']['provider'] == 'gcal':
+    CREDENTIALS_FILE = config['gcal']['credentials']
+    googleC = GoogleCalendar(CREDENTIALS_FILE)
+    deleteCalendars, newCalendars = compareEvents(oraribetter, googleC.getFromGoogleCalendar())
+    print("Found", len(newCalendars), "new Events and", len(deleteCalendars), "to delete")
+    googleC.deleteEvents(deleteCalendars)
+    googleC.createEvents(newCalendars)
 
-print("Found", len(newCalendars), "new Events and", len(deleteCalendars), "to delete")
+if config['general']['provider'] == 'caldav':
+    print(config['general']['provider'])
 
-googleC.deleteEvents(deleteCalendars) #delete events on gcalendar
-googleC.createEvents(newCalendars) #create events on gcalendar
 
-#saveToIcs(oraribetter, 'CalendariFoscari', 'calendario.ics') #save lessons to an ics file (current path + CalendariFoscari folder + filename)
-saveToIcs(oraribetter, '', 'calendar.ics') 
+saveToIcs(oraribetter, 'CalendariFoscari', 'calendario.ics')
+saveToIcs(oraribetter, '', 'calendario.ics')
+
