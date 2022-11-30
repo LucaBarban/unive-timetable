@@ -4,12 +4,16 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from datetime import datetime
+import configparser
 
 from lesson import Lezione
 
 # the implementaton is some sort of a remix from (conmments included :P):
 # https://karenapp.io/articles/how-to-automate-google-calendar-with-python-using-the-calendar-api/
 # https://developers.google.com/calendar/api
+
+config = configparser.ConfigParser()
+config.read("config.toml")
 
 class GoogleCalendar:
     service = None
@@ -56,7 +60,7 @@ class GoogleCalendar:
 
     def getFromGoogleCalendar(self) -> list[Lezione]:
         gCalendar = []
-        id = self.getCalendarId("Orari Uni") # "Orari Uni" is the name of the calendar on gcalendar (will get moved to a config file)
+        id = self.getCalendarId(config['general']['calendar'])
         events = self.service.events().list(calendarId=id, pageToken=None).execute() # (should) get the first event in the specified calendar
 
         eventsNumber = 0

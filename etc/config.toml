@@ -1,5 +1,7 @@
 [general]
 provider = # gcal, caldav, etc..
+calendar = # calendar where upload the time table
+year = # Accademic year: 1, 2, 3
 ignore = ['materia1', 'materia2' ] # Array of lesson to ignore when uploding
 # You could write it also like this:
 #   ignore = [
