@@ -1,0 +1,16 @@
+[general]
+provider = # gcal, caldav, etc..
+ignore = ['materia1', 'materia2' ] # Array of lesson to ignore when uploding
+# You could write it also like this:
+#   ignore = [
+#     'materia1'
+#     'materia2' 
+#   ]
+
+[gcal]
+credentials = # /path/to/token
+
+[caldav]
+provider = # Nextcloud, iCloud, Office365, etc..
+username =
+url = # CalDav URL
