@@ -132,3 +132,4 @@ dmypy.json
 token.pickle
 *.ics
 orariUnive.py
+config.toml
