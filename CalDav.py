@@ -13,12 +13,17 @@ calendar_name = config['general']['calendar']
 url = config['caldav']['url']
 password = keyring.get_password("Backup Nextcloud", username)
 
-
-
 with caldav.DAVClient(url=url, username=username, password=password) as client:
     my_principal = client.principal()
 
-calendar = my_principal.calendar(name=calendar_name)
+try:
+    ## This will raise a NotFoundError if calendar does not exist
+    calendar = my_principal.calendar(name=calendar_name)
+    assert calendar
+except Exception:
+    ## If the configured calendar is not found it creates it
+    calendar = my_principal.make_calendar(name=calendar_name)
+
 all_events = calendar.events()
 
 def GetEvents():
