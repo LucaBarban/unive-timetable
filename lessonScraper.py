@@ -79,10 +79,10 @@ def scrapeLessons(url) -> list[Lezione]:
                 if len(list(tmp[2])) > 0: #stupid case where things are writte into an em tag
                     #print(list(tmp[2])[0].text.title())
                     orari.append(Lezione(materia, giorno, data, list(tmp[2])[0].text.title(), 
-                                docnote, luogo, classe, orario))
+                                docnote, luogo, classe, orario, 0))
                 else:
                     orari.append(Lezione(materia, giorno, data, attivita, 
-                                docnote, luogo, classe, orario))
+                                docnote, luogo, classe, orario, 0))
                 #print(orari, "\nl")
         else:
             print("rip")

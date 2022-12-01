@@ -60,7 +60,7 @@ class GoogleCalendar:
 
     def getFromGoogleCalendar(self) -> list[Lezione]:
         gCalendar = []
-        id = self.getCalendarId(config['general']['calendar'])
+        id = self.getCalendarId(config['general']['calendar']) # "Orari Uni" is the name of the calendar on gcalendar (will get moved to a config file)
         events = self.service.events().list(calendarId=id, pageToken=None).execute() # (should) get the first event in the specified calendar
 
         eventsNumber = 0
@@ -83,7 +83,7 @@ class GoogleCalendar:
                         tmpTimeList = event["end"]["dateTime"].split("T")[1].split(":")
                         tmpTime += tmpTimeList[0] + ":" + tmpTimeList[1]
                         
-                        gCalendar.append(Lezione(event["summary"], tmpGiorno, tmpData, tmpAttività, tmpDocnote, event["location"], tmpClasse, tmpTime))
+                        gCalendar.append(Lezione(event["summary"], tmpGiorno, tmpData, tmpAttività, tmpDocnote, event["location"], tmpClasse, tmpTime, event["id"]))
                         gCalendar[len(gCalendar) - 1].setGoogleId(event["id"])
                     except:
                         print("Error reading from google calendar on:", event)
@@ -106,7 +106,7 @@ class GoogleCalendar:
                 try:
                     self.service.events().delete(
                         calendarId=id,
-                        eventId=event.getGoogleId(),
+                        eventId=event.getUID(),
                     ).execute()
                 except Exception as e:
                     print("Failed to delete event: ", event)

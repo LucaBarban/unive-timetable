@@ -1,5 +1,5 @@
 class Lezione:
-    def __init__(self, materia, giorno, data, attivita, docnote, luogo, classe, orario):
+    def __init__(self, materia, giorno, data, attivita, docnote, luogo, classe, orario, uid):
         self.materia = materia.strip()  # subject like algebra lineare, programmazione etc
         self.giorno = giorno.strip()  # day of the week (Lunedì, Martedì...)
         self.data = data.strip()  # lesson's date (eg. 1/1/2000)
@@ -10,7 +10,7 @@ class Lezione:
         tmp = orario.strip().split(" - ")
         # from what time to what time the lesson will be held
         self.orario = tmp[0] + "-" + tmp[1]
-        self.googleId = "" # event's uid used by gcalendar
+        self.uid = uid # event's uid
 
     def setDoubleClass(self):
         self.classe = "Aula 1 e 2"
@@ -57,11 +57,8 @@ class Lezione:
     def getEndingingTime(self):
         return self.orario[self.orario.find("-"):][1:]
 
-    def setGoogleId(self, id):
-        self.googleId = id
-    
-    def getGoogleId(self):
-        return self.googleId
+    def getUID(self):
+        return self.uid
 
     def __str__(self):
         return self.data + "," + self.orario + "," + self.materia + "," + self.classe + "," + self.docnote + "," + self.luogo + "," + self.attivita + "," + self.giorno
