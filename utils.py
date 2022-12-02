@@ -7,7 +7,7 @@ def check_config():
     config = configparser.ConfigParser()
     config.read("config.toml")
     try:
-        config['general']['provider']
+        print("Check provider:" + config['general']['provider'])
         print("I've loaded the config file!")
         create_config = False
     except KeyError:
