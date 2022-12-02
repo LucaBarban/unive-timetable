@@ -5,7 +5,6 @@ import caldav
 import configparser
 import keyring
 
-
 config = configparser.ConfigParser()
 config.read("config.toml")
 
@@ -23,6 +22,7 @@ try:
     assert calendar
 except Exception:
     ## If the configured calendar is not found it creates it
+    print("Making calendar: %s", calendar_name)
     calendar = my_principal.make_calendar(name=calendar_name)
 
 all_events = calendar.events()
