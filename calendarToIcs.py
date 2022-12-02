@@ -1,7 +1,8 @@
-import os
 from pathlib import Path
 from icalendar import Calendar, Event, vCalAddress, vText
 from datetime import datetime
+
+import os
 
 def saveToIcs(calendar, folder, filename):
     cal = Calendar()

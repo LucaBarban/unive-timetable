@@ -1,9 +1,10 @@
+from datetime import datetime
+from lesson import Lezione
+
 import caldav
 import configparser
 import keyring
-from datetime import datetime
 
-from lesson import Lezione
 
 config = configparser.ConfigParser()
 config.read("config.toml")
@@ -63,4 +64,3 @@ def DeleteEvent(events):
     if len(events) > 0:
         for event in events:
             event.getUID().delete()
-

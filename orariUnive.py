@@ -3,7 +3,7 @@ from lessonScraper import scrapeLessons
 from calendarToIcs import saveToIcs
 from googleCalendar import GoogleCalendar
 from compareEvents import compareEvents
-import CalDav
+import my_caldav
 import configparser
 
 config = configparser.ConfigParser()
@@ -22,10 +22,10 @@ if config['general']['provider'] == 'gcal':
     googleC.createEvents(newCalendars)
 
 if config['general']['provider'] == 'caldav':
-    deleteCalendars, newCalendars = compareEvents(oraribetter, CalDav.GetEvents())
+    deleteCalendars, newCalendars = compareEvents(oraribetter, my_caldav.GetEvents())
     print("Found", len(newCalendars), "new Events and", len(deleteCalendars), "to delete")
-    CalDav.DeleteEvent(deleteCalendars)
-    CalDav.CreateEvent(newCalendars)
+    my_caldav.DeleteEvent(deleteCalendars)
+    my_caldav.CreateEvent(newCalendars)
 
 # saveToIcs(oraribetter, 'CalendariFoscari', 'calendario.ics')
 saveToIcs(oraribetter, 'etc', 'calendario.ics')
