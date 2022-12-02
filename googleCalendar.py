@@ -79,16 +79,14 @@ class GoogleCalendar:
                         tmpData = tmpDataPieces[2] + "/" + tmpDataPieces[1] + "/" + tmpDataPieces[0]
 
                         tmpTimeList = event["start"]["dateTime"].split("T")[1].split(":")
-                        tmpTime = tmpTimeList[0] + ":" + tmpTimeList[1] + " - "
+                        tmpTime = tmpTimeList[0] + ":" + tmpTimeList[1] + "-"
                         tmpTimeList = event["end"]["dateTime"].split("T")[1].split(":")
                         tmpTime += tmpTimeList[0] + ":" + tmpTimeList[1]
-                        
                         gCalendar.append(Lezione(event["summary"], tmpGiorno, tmpData, tmpAttività, tmpDocnote, event["location"], tmpClasse, tmpTime, event["id"]))
                         gCalendar[len(gCalendar) - 1].setGoogleId(event["id"])
                     except:
                         print("Error reading from google calendar on:", event)
                         exit()
-                        
                 eventsNumber += len(events["items"])
 
                 #if len(events["items"]) == 0 or not events["nextPageToken"]:
@@ -121,9 +119,9 @@ class GoogleCalendar:
             for lezione in calendar:
                 eventBody = {
                     'id': hash(lezione),
-                    'summary': lezione.getmateria(),
-                    'location': lezione.getluogo(),
-                    'description': lezione.getattivita() + " in " + lezione.getclasse() + " di " + lezione.getgiorno() + " con " + lezione.getdocnote(),
+                    'summary': lezione.getsubject(),
+                    'location': lezione.getlocation(),
+                    'description': lezione.getactivity() + " in " + lezione.getclasses() + " di " + lezione.getday() + " con " + lezione.getprof(),
                     'start': {
                         'dateTime': str(datetime.strptime(lezione.getStartDateTime(), "%d/%m/%Y-%H:%M").isoformat()),
                         'timeZone': 'Europe/Rome',

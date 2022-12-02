@@ -22,7 +22,7 @@ try:
     assert calendar
 except Exception:
     ## If the configured calendar is not found it creates it
-    print("Making calendar: %s", calendar_name)
+    print("Making calendar: " + calendar_name)
     calendar = my_principal.make_calendar(name=calendar_name)
 
 all_events = calendar.events()
@@ -40,10 +40,9 @@ def GetEvents():
         tprofessor = event.description.value.split(" con ")[1]
         _dtstart = event.dtstart.value
         _dtend = event.dtend.value
-        # 14/12/2022,10:30-12:00
         tdate = str(_dtstart.strftime("%d/%m/%Y"))
-        ttime = str(_dtstart.strftime("%H:%M")) + " - " + str(_dtend.strftime("%H:%M"))
-        # print(ttime)
+        ttime = str(_dtstart.strftime("%H:%M")) + "-" + str(_dtend.strftime("%H:%M"))
+        # print(event)
         events.append(Lezione(tsummary, tday, tdate, tactivity, tprofessor, tlocation, tclass, ttime, tuid))
 
     return events
@@ -52,11 +51,11 @@ def CreateEvent(events):
     for event in events:
         if len(events) > 0:
             calendar.save_event(
-                summary=event.getmateria(),
+                summary=event.getsubject(),
                 dtstart=datetime.strptime(event.getStartDateTime(), "%d/%m/%Y-%H:%M"),
                 dtend=datetime.strptime(event.getEndDateTime(), "%d/%m/%Y-%H:%M"),
-                location=event.getluogo(),
-                description=event.getattivita() + " in " + event.getclasse() + " di " + event.getgiorno() + " con " + event.getdocnote(),
+                location=event.getlocation(),
+                description=event.getactivity() + " in " + event.getclasses() + " di " + event.getday() + " con " + event.getprof(),
                 timezone='Europe/Rome',
             )
     print("All events in newCalendars created")

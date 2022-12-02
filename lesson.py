@@ -1,73 +1,65 @@
 class Lezione:
-    def __init__(self, materia, giorno, data, attivita, docnote, luogo, classe, orario, uid):
-        self.materia = materia.strip()  # subject like algebra lineare, programmazione etc
-        self.giorno = giorno.strip()  # day of the week (Lunedì, Martedì...)
-        self.data = data.strip()  # lesson's date (eg. 1/1/2000)
-        self.attivita = attivita.strip()  # activity (lezione/lab?, get a look at the timetable page on the "Attività" coulumn)
-        self.docnote = docnote.strip()  # professor plus some notes (if there are any) on the website, here only the professor's name is saved
-        self.luogo = luogo.strip()  # where the lesson will be held
-        self.classe = classe.strip()  # room where the lesson will be held
-        tmp = orario.strip().split(" - ")
-        # from what time to what time the lesson will be held
-        self.orario = tmp[0] + "-" + tmp[1]
+    def __init__(self, subject, day, date, activity, prof, location, classes, time, uid):
+        self.subject = subject.strip()  # subject like algebra lineare, programmazione etc
+        self.day = day.strip()  # day of the week (Lunedì, Martedì...)
+        self.date = date.strip()  # lesson's date (eg. 1/1/2000)
+        self.activity = activity.strip()  # activity (lezione/lab?, get a look at the timetable page on the "Attività" coulumn)
+        self.prof = prof.strip()  # professor plus some notes (if there are any) on the website, here only the professor's name is saved
+        self.location = location.strip()  # where the lesson will be held
+        self.classes = classes.strip()  # room where the lesson will be held
+        self.time = time.strip() # from what time to what time the lesson will be held
         self.uid = uid # event's uid
 
     def setDoubleClass(self):
-        self.classe = "Aula 1 e 2"
+        self.classes = self.classes
 
-    def getmateria(self):
-        return self.materia
+    def getsubject(self):
+        return self.subject
 
-    def getgiorno(self):
-        return self.giorno
+    def getday(self):
+        return self.day
 
-    def getdata(self):
-        return self.data
+    def getdate(self):
+        return self.date
 
-    def getattivita(self):
-        return self.attivita
+    def getactivity(self):
+        return self.activity
 
-    def getdocnote(self):
-        return self.docnote
+    def getprof(self):
+        return self.prof
 
-    def getluogo(self):
-        return self.luogo
+    def getlocation(self):
+        return self.location
 
-    def getclasse(self):
-        return self.classe
+    def getclasses(self):
+        return self.classes
 
-    def getorario(self):
-        return self.orario
+    def gettime(self):
+        return self.time
 
     def getStartDateTime(self):
-        return self.data + "-" + self.getStartingTime()
+        return self.date + "-" + self.getStartingTime()
 
     def getEndDateTime(self):
-        return self.data + "-" + self.getEndingingTime()
-
-    def getDate(self):
-        return self.data
-
-    def getTime(self):
-        return self.orario
+        return self.date + "-" + self.getEndingingTime()
 
     def getStartingTime(self):
-        return self.orario[:self.orario.find("-")]
+        return self.time[:self.time.find("-")]
 
     def getEndingingTime(self):
-        return self.orario[self.orario.find("-"):][1:]
+        return self.time[self.time.find("-"):][1:]
 
     def getUID(self):
         return self.uid
 
     def __str__(self):
-        return self.data + "," + self.orario + "," + self.materia + "," + self.classe + "," + self.docnote + "," + self.luogo + "," + self.attivita + "," + self.giorno
+        return self.date + "," + self.time + "," + self.subject + "," + self.classes + "," + self.prof + "," + self.location + "," + self.activity + "," + self.day
 
     def __repr__(self):
-        return self.data + "," + self.orario + "," + self.materia + "," + self.classe + "," + self.docnote + "," + self.luogo + "," + self.attivita + "," + self.giorno
+        return self.date + "," + self.time + "," + self.subject + "," + self.classes + "," + self.prof + "," + self.location + "," + self.activity + "," + self.day
 
     def __eq__(self, lesson):
-        return isinstance(lesson, self.__class__) and self.materia == lesson.materia and self.giorno == lesson.giorno and self.data == lesson.data and self.attivita == lesson.attivita and self.docnote == lesson.docnote and self.luogo == lesson.luogo and self.classe == lesson.classe and self.orario == lesson.orario
+        return isinstance(lesson, self.__class__) and self.subject == lesson.subject and self.day == lesson.day and self.date == lesson.date and self.activity == lesson.activity and self.prof == lesson.prof and self.location == lesson.location and self.classes == lesson.classes and self.time == lesson.time
 
     def __hash__(self):
         tmphash = hash(str(self))
