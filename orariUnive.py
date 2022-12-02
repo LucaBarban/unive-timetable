@@ -1,11 +1,10 @@
-#from lesson import Lezione
 import configparser
+import my_caldav
+import utils
 
 from lessonScraper import scrapeLessons
 from googleCalendar import GoogleCalendar
 from compareEvents import compareEvents
-import my_caldav
-import utils
 
 if utils.setup_config():
     config = configparser.ConfigParser()

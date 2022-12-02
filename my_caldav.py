@@ -38,14 +38,15 @@ def GetEvents():
         tclass = event.description.value.split(" in ")[1].split(" di ")[0]
         tlocation = event.location.value
         tprofessor = event.description.value.split(" con ")[1]
-        _dtstart = str(event.dtstart.value).split(" ")
-        _dtend = str(event.dtend.value).split(" ")
-        tdate = _dtstart[0] + "/" + _dtend[0]
-        ttime = _dtstart[1] + " - " + _dtend[1]
+        _dtstart = event.dtstart.value
+        _dtend = event.dtend.value
+        # 14/12/2022,10:30-12:00
+        tdate = str(_dtstart.strftime("%d/%m/%Y"))
+        ttime = str(_dtstart.strftime("%H:%M")) + " - " + str(_dtend.strftime("%H:%M"))
+        # print(ttime)
         events.append(Lezione(tsummary, tday, tdate, tactivity, tprofessor, tlocation, tclass, ttime, tuid))
 
     return events
-
 
 def CreateEvent(events):
     for event in events:
