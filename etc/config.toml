@@ -6,12 +6,7 @@ calendar =
 # Accademic year: 1, 2, 3
 year =
 # Array of lesson to ignore when uploding
-ignore = ['materia1', 'materia2' ]
-# You could write it also like this:
-#   ignore = [
-#     'materia1'
-#     'materia2'
-#   ]
+ignore = [ 'materia1', 'materia2' ]
 
 [gcal]
 # /path/to/token

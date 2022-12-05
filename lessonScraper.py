@@ -1,4 +1,5 @@
 from datetime import datetime
+from re import sub
 import xml.etree.ElementTree as ET
 import requests
 
@@ -8,24 +9,24 @@ from lesson import Lezione
 # anyway, the code requests the page from the url, conferts it to and xml-tree and scrapres the content.
 # as a final step lessons that are held in Aula 1 and Aula 2 at the same time will be merged
 
-def scrapeLessons(url) -> list[Lezione]:
+def scrapeLessons(url, ignore) -> list[Lezione]:
     response = requests.get(url).text
     response = response[response.find(
         "<div class=\"card-body\">"):response.find("<!-- fine col 9-->")]
     response = "<bs>"+response[23:-300]+"</bs>"
 
     # some debug stuff
-    """
-    with open('testpagina.html', 'w') as file:
-        file.write(response)
-    """
-    
-    """
-    with open('testpagina.txt', 'w') as file:
-        for lezione in oraribetter:
-            print(lezione)
-            file.write(str(lezione) + ";\n")
-    """
+    # """
+    # with open('testpagina.html', 'w') as file:
+    #     file.write(response)
+    # """
+    #
+    # """
+    # with open('testpagina.txt', 'w') as file:
+    #     for lezione in oraribetter:
+    #         print(lezione)
+    #         file.write(str(lezione) + ";\n")
+    # """
 
     tree = ET.ElementTree(ET.fromstring(response))
     # ET.dump(tree)
@@ -45,7 +46,10 @@ def scrapeLessons(url) -> list[Lezione]:
     for thing in root:
         if thing.tag == "h5":
             subject = list(thing)[0].text
+            subject = str(subject).strip()
         elif thing.tag == "div":
+            if subject in ignore:
+                continue
             children = list(thing)
             children1 = list(children)[0]
             children2 = list(children)[1]
@@ -73,18 +77,19 @@ def scrapeLessons(url) -> list[Lezione]:
                 # print(entry.attrib)
                 tmp = list(entry)
                 date = tmp[0].text
-                #print("annotazione:", annotazioni)
+                # print("annotazione:", annotazioni)
                 attivita = annotations.title() if annotations is not None else tmp[1].text
-                #print(attivita)
+                # print(attivita)
+                # print(subject)
                 prof = tmp[2].text.title()
                 if len(list(tmp[2])) > 0: #stupid case where things are writte into an em tag
                     #print(list(tmp[2])[0].text.title())
-                    orari.append(Lezione(subject, day, date, list(tmp[2])[0].text.title(), 
+                    orari.append(Lezione(subject, day, date, list(tmp[2])[0].text.title(),
                                 prof, location, classes, time, 0))
                 else:
-                    orari.append(Lezione(subject, day, date, attivita, 
+                    orari.append(Lezione(subject, day, date, attivita,
                                 prof, location, classes, time, 0))
-                #print(orari, "\nl")
+                # print(orari, "\nl")
         else:
             print("rip")
             exit()
