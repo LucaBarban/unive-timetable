@@ -1,12 +1,13 @@
-from datetime import datetime
-from lesson import Lezione
-
 import caldav
-import utils
 import configparser
 import keyring
 
-if utils.load():
+from datetime import datetime
+from obj_lesson import Lezione
+from utils import load
+
+
+if load():
     config = configparser.ConfigParser()
     config.read("config.toml")
     username = config['caldav']['username']
@@ -28,7 +29,7 @@ if utils.load():
 
     all_events = calendar.events()
 
-def GetEvents():
+def getEvents():
     events = []
     for event in all_events:
         tuid = event
@@ -48,7 +49,7 @@ def GetEvents():
 
     return events
 
-def CreateEvent(events):
+def createEvent(events):
     for event in events:
         if len(events) > 0:
             calendar.save_event(
@@ -61,7 +62,7 @@ def CreateEvent(events):
             )
     print("All events in newCalendars created")
 
-def DeleteEvent(events):
+def deleteEvent(events):
     if len(events) > 0:
         for event in events:
             event.getUID().delete()

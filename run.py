@@ -1,9 +1,9 @@
 import configparser
-import my_caldav
+import mycaldav as caldav
 import utils
 
-from lessonScraper import scrapeLessons
-from googleCalendar import GoogleCalendar
+from scraper import scrapeLessons
+from gcal import GoogleCalendar
 from compareEvents import compareEvents
 
 if utils.setup_config():
@@ -24,7 +24,7 @@ if utils.setup_config():
         googleC.createEvents(newCalendars)
 
     if config['general']['provider'] == 'caldav':
-        deleteCalendars, newCalendars = compareEvents(oraribetter, my_caldav.GetEvents())
+        deleteCalendars, newCalendars = compareEvents(oraribetter, caldav.getEvents())
         print("Found", len(newCalendars), "new Events and", len(deleteCalendars), "to delete")
-        my_caldav.DeleteEvent(deleteCalendars)
-        my_caldav.CreateEvent(newCalendars)
+        caldav.deleteEvent(deleteCalendars)
+        caldav.createEvent(newCalendars)

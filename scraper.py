@@ -3,7 +3,7 @@ from re import sub
 import xml.etree.ElementTree as ET
 import requests
 
-from lesson import Lezione
+from obj_lesson import Lezione
 
 # if you think that i remenber how all of this works, then you are wrong :)
 # anyway, the code requests the page from the url, conferts it to and xml-tree and scrapres the content.

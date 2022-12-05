@@ -6,7 +6,7 @@ from google.auth.transport.requests import Request
 from datetime import datetime
 import configparser
 
-from lesson import Lezione
+from obj_lesson import Lezione
 
 # the implementaton is some sort of a remix from (conmments included :P):
 # https://karenapp.io/articles/how-to-automate-google-calendar-with-python-using-the-calendar-api/
