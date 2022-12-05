@@ -1,37 +1,33 @@
-import configparser
 import shutil
+import os
 
-def check_config():
-    print("Checking config file")
-    create_config = None
-    config = configparser.ConfigParser()
-    config.read("config.toml")
-    try:
-        print("Check provider:" + config['general']['provider'])
-        print("I've loaded the config file!")
-        create_config = False
-    except KeyError:
-        print("I couldn't find a config file")
-        create_config = True
+def check_config(verbose):
+    if verbose:
+        print("Checking config file")
+    if os.path.exists("./config.toml"):
+        if verbose:
+            print("I've loaded the config file!")
+        return True
+    else:
+        if verbose:
+            print("I couldn't find a config file")
+        return False
 
-    return create_config
-
-def copy_config(bool):
-    status = True
-    if bool:
+def copy_config(exists):
+    if exists:
         try:
-            shutil.copy("./etc/.toml", "./config.toml")
+            shutil.copy("./etc/config.toml", "./config.toml")
             print("I craeted a new config in the root of the project")
-            status = True
         except FileNotFoundError:
-            print("""
-                  There's something wrong in your install.
-                  Please check a correct at this url:
-                  https://github.com/LucaBarban/unive-timetable/blob/main/etc/config.toml
-                  """)
-            status = False
+            print("There's something wrong in your install.\n",
+                  "Please check a correct at this url:\n",
+                  "https://github.com/LucaBarban/unive-timetable/blob/main/etc/config.toml\n")
+    exit()
 
-    return status
+def load():
+    return check_config(False)
 
 def setup_config():
-    return copy_config(check_config())
+    if check_config(True):
+        return True
+    copy_config(True)
