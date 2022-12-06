@@ -10,24 +10,25 @@ from utils import load
 if load():
     config = configparser.ConfigParser()
     config.read("config.toml")
-    username = config['caldav']['username']
-    calendar_name = config['general']['calendar']
-    url = config['caldav']['url']
-    password = keyring.get_password("Backup Nextcloud", username)
+    if config["general"]["provider"] == "caldav":
+        username = config['caldav']['username']
+        calendar_name = config['general']['calendar']
+        url = config['caldav']['url']
+        password = keyring.get_password("Backup Nextcloud", username)
 
-    with caldav.DAVClient(url=url, username=username, password=password) as client:
-        my_principal = client.principal()
+        with caldav.DAVClient(url=url, username=username, password=password) as client:
+            my_principal = client.principal()
 
-    try:
-        ## This will raise a NotFoundError if calendar does not exist
-        calendar = my_principal.calendar(name=calendar_name)
-        assert calendar
-    except Exception:
-        ## If the configured calendar is not found it creates it
-        print("Making calendar: " + calendar_name)
-        calendar = my_principal.make_calendar(name=calendar_name)
+        try:
+            ## This will raise a NotFoundError if calendar does not exist
+            calendar = my_principal.calendar(name=calendar_name)
+            assert calendar
+        except Exception:
+            ## If the configured calendar is not found it creates it
+            print("Making calendar: " + calendar_name)
+            calendar = my_principal.make_calendar(name=calendar_name)
 
-    all_events = calendar.events()
+        all_events = calendar.events()
 
 def getEvents():
     events = []

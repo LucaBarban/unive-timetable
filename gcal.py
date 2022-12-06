@@ -57,6 +57,8 @@ class GoogleCalendar:
             id = calendar['id']
             if summary == calendarName:
                 return id
+        print("The given calendar name hasn't been found! ({s})".format(s=calendarName) )
+        exit()
 
     def getFromGoogleCalendar(self) -> list[Lezione]:
         gCalendar = []
@@ -83,9 +85,8 @@ class GoogleCalendar:
                         tmpTimeList = event["end"]["dateTime"].split("T")[1].split(":")
                         tmpTime += tmpTimeList[0] + ":" + tmpTimeList[1]
                         gCalendar.append(Lezione(event["summary"], tmpGiorno, tmpData, tmpAttività, tmpDocnote, event["location"], tmpClasse, tmpTime, event["id"]))
-                        gCalendar[len(gCalendar) - 1].setGoogleId(event["id"])
-                    except:
-                        print("Error reading from google calendar on:", event)
+                    except Exception as e:
+                        print("Error reading from google calendar on:", event, e)
                         exit()
                 eventsNumber += len(events["items"])
 
