@@ -15,6 +15,7 @@ from obj_lesson import Lezione
 config = configparser.ConfigParser()
 config.read("config.toml")
 
+
 class GoogleCalendar:
     service = None
 
@@ -57,13 +58,13 @@ class GoogleCalendar:
             id = calendar['id']
             if summary == calendarName:
                 return id
-        print("The given calendar name hasn't been found! ({s})".format(s=calendarName) )
+        print("The given calendar name hasn't been found! ({s})".format(s=calendarName))
         exit()
 
     def getFromGoogleCalendar(self) -> list[Lezione]:
         gCalendar = []
-        id = self.getCalendarId(config['general']['calendar']) # "Orari Uni" is the name of the calendar on gcalendar (will get moved to a config file)
-        events = self.service.events().list(calendarId=id, pageToken=None).execute() # (should) get the first event in the specified calendar
+        id = self.getCalendarId(config['general']['calendar'])  # "Orari Uni" is the name of the calendar on gcalendar (will get moved to a config file)
+        events = self.service.events().list(calendarId=id, pageToken=None).execute()  # (should) get the first event in the specified calendar
 
         eventsNumber = 0
         if not events:
@@ -90,10 +91,10 @@ class GoogleCalendar:
                         exit()
                 eventsNumber += len(events["items"])
 
-                #if len(events["items"]) == 0 or not events["nextPageToken"]:
-                if "nextPageToken" not in events or not events["nextPageToken"]: # if there are no more events, stop iterating
+                # if len(events["items"]) == 0 or not events["nextPageToken"]:
+                if "nextPageToken" not in events or not events["nextPageToken"]:  # if there are no more events, stop iterating
                     break
-                events = self.service.events().list(calendarId=id, pageToken=events["nextPageToken"]).execute() # save the next events form gcalendar to parse them
+                events = self.service.events().list(calendarId=id, pageToken=events["nextPageToken"]).execute()  # save the next events form gcalendar to parse them
             print(eventsNumber, "events on google calendar found")
             return gCalendar
 
@@ -132,7 +133,5 @@ class GoogleCalendar:
                         'timeZone': 'Europe/Rome',
                     }
                 }
-                event_result = self.service.events().insert(calendarId=id,
-                                                    body=eventBody
-                                                    ).execute()
+                self.service.events().insert(calendarId=id, body=eventBody).execute()
             print("All events in newCalendars created")

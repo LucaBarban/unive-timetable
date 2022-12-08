@@ -9,7 +9,7 @@ from compareEvents import compareEvents
 if utils.setup_config():
     config = configparser.ConfigParser()
     config.read("config.toml")
-    url = "https://www.unive.it/data/46/" + config['general']['year'] #url to scrape from
+    url = "https://www.unive.it/data/46/" + config['general']['year']  # url to scrape from
     ignore = config['general']['ignore']
 
     oraribetter = scrapeLessons(url, ignore)

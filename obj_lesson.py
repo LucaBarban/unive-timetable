@@ -7,8 +7,8 @@ class Lezione:
         self.prof = prof.strip()  # professor plus some notes (if there are any) on the website, here only the professor's name is saved
         self.location = location.strip()  # where the lesson will be held
         self.classes = classes.strip()  # room where the lesson will be held
-        self.time = time.strip() # from what time to what time the lesson will be held
-        self.uid = uid # event's uid
+        self.time = time.strip()  # from what time to what time the lesson will be held
+        self.uid = uid  # event's uid
 
     def setDoubleClass(self):
         self.classes = self.classes
