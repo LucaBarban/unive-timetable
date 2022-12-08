@@ -16,13 +16,15 @@ For installing the dependencies you can use either nix or pip.
 ```bash 
 pip install -U -r requirements.txt
 # or
-nix develop
+nix develop 
 ```
 
 ## Running the script
 
 ```bash
 python3 run.py
+# or
+nix develop -c python3 run.py
 ```
 
 ## Configuration
