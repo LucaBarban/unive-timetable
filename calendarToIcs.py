@@ -8,7 +8,6 @@ import os
 def saveToIcs(calendar):
     config = configparser.ConfigParser()
     config.read("config.toml")
-    #if config["general"]["provider"] == "caldav":
     cal = Calendar()
 
     for lezione in calendar:
