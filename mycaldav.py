@@ -20,11 +20,11 @@ if load():
             my_principal = client.principal()
 
         try:
-            ## This will raise a NotFoundError if calendar does not exist
+            # This will raise a NotFoundError if calendar does not exist
             calendar = my_principal.calendar(name=calendar_name)
             assert calendar
         except Exception:
-            ## If the configured calendar is not found it creates it
+            # If the configured calendar is not found it creates it
             print("Making calendar: " + calendar_name)
             calendar = my_principal.make_calendar(name=calendar_name)
 
