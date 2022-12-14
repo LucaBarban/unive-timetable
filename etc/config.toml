@@ -1,5 +1,5 @@
 [general]
-# gcal, caldav, etc..
+# gcal, caldav, ics
 provider =
 # calendar where upload the time table
 calendar =
@@ -18,3 +18,10 @@ provider =
 username =
 # CalDav URL
 url =
+
+[ics]
+# save in the current path (true/false)
+usePath = 
+# folder in whitch to save the file
+folder = 
+filename = 

@@ -1,17 +1,21 @@
 from pathlib import Path
 from icalendar import Calendar, Event, vCalAddress, vText
 from datetime import datetime
+import configparser
 
 import os
 
-def saveToIcs(calendar, folder, filename):
+def saveToIcs(calendar):
+    config = configparser.ConfigParser()
+    config.read("config.toml")
+    #if config["general"]["provider"] == "caldav":
     cal = Calendar()
 
     for lezione in calendar:
         event = Event()
-        event.add('summary', lezione.getmateria())
-        event.add('description', lezione.getattivita() + " in " +
-                lezione.getclasse() + " di " + lezione.getgiorno() + " con " + lezione.getdocnote())
+        event.add('summary', lezione.getsubject())
+        event.add('description', lezione.getactivity() + " in " +
+                lezione.getclasses() + " di " + lezione.getday() + " con " + lezione.getprof())
         event.add('dtstart', datetime.strptime(
             lezione.getStartDateTime(), "%d/%m/%Y-%H:%M"))
         event.add('dtend', datetime.strptime(
@@ -25,15 +29,20 @@ def saveToIcs(calendar, folder, filename):
         event['organizer'] = organizer
         """
 
-        event['location'] = vText(lezione.getluogo())
+        event['location'] = vText(lezione.getlocation())
 
         event['uid'] = hash(lezione)
         event.add('priority', 5)
 
         cal.add_component(event)
 
-    directory = Path.cwd() / folder
+    directory = None
+    if config["ics"]["usepath"] == "true":
+        directory = Path.cwd() / config["ics"]["folder"]
+    else:
+        directory = Path(config["ics"]["folder"])
     try:
+        print(directory)
         directory.mkdir(parents=True, exist_ok=False)
     except FileExistsError:
         print("Folder exists")
@@ -41,6 +50,6 @@ def saveToIcs(calendar, folder, filename):
         print("Folder created")
 
     print("Saving ics file to disk...")
-    f = open(os.path.join(directory, filename), 'wb')
+    f = open(os.path.join(directory, config["ics"]["filename"]), 'wb')
     f.write(cal.to_ical())
     f.close()
