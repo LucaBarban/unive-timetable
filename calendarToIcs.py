@@ -1,9 +1,10 @@
 from pathlib import Path
-from icalendar import Calendar, Event, vCalAddress, vText
+from icalendar import Calendar, Event, vText
 from datetime import datetime
 import configparser
 
 import os
+
 
 def saveToIcs(calendar):
     config = configparser.ConfigParser()
@@ -13,8 +14,7 @@ def saveToIcs(calendar):
     for lezione in calendar:
         event = Event()
         event.add('summary', lezione.getsubject())
-        event.add('description', lezione.getactivity() + " in " +
-                lezione.getclasses() + " di " + lezione.getday() + " con " + lezione.getprof())
+        event.add('description', lezione.getactivity() + " in " + lezione.getclasses() + " di " + lezione.getday() + " con " + lezione.getprof())
         event.add('dtstart', datetime.strptime(
             lezione.getStartDateTime(), "%d/%m/%Y-%H:%M"))
         event.add('dtend', datetime.strptime(

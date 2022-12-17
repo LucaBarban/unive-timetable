@@ -29,5 +29,6 @@ if utils.setup_config():
         print("Found", len(newCalendars), "new Events and", len(deleteCalendars), "to delete")
         caldav.deleteEvent(deleteCalendars)
         caldav.createEvent(newCalendars)
+
     if config['general']['provider'] == 'ics':
-        saveToIcs(oraribetter) 
+        saveToIcs(oraribetter)

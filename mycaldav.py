@@ -30,6 +30,7 @@ if load():
 
         all_events = calendar.events()
 
+
 def getEvents():
     events = []
     for event in all_events:
@@ -45,10 +46,10 @@ def getEvents():
         _dtend = event.dtend.value
         tdate = str(_dtstart.strftime("%d/%m/%Y"))
         ttime = str(_dtstart.strftime("%H:%M")) + "-" + str(_dtend.strftime("%H:%M"))
-        # print(event)
         events.append(Lezione(tsummary, tday, tdate, tactivity, tprofessor, tlocation, tclass, ttime, tuid))
 
     return events
+
 
 def createEvent(events):
     for event in events:
@@ -62,6 +63,7 @@ def createEvent(events):
                 timezone='Europe/Rome',
             )
     print("All events in newCalendars created")
+
 
 def deleteEvent(events):
     if len(events) > 0:
