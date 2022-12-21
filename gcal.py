@@ -73,7 +73,7 @@ class GoogleCalendar:
             while (True):
                 for event in events["items"]:
                     try:
-                        tmpAttività = event["description"].split(" ")[0]
+                        tmpAttività = event["description"].split(" in ")[0]
                         tmpGiorno = event["description"].split(" di ")[1].split(" con ")[0]
                         tmpClasse = event["description"].split(" in ")[1].split(" di ")[0]
                         tmpDocnote = event["description"].split(" con ")[1]
@@ -85,9 +85,10 @@ class GoogleCalendar:
                         tmpTime = tmpTimeList[0] + ":" + tmpTimeList[1] + "-"
                         tmpTimeList = event["end"]["dateTime"].split("T")[1].split(":")
                         tmpTime += tmpTimeList[0] + ":" + tmpTimeList[1]
-                        gCalendar.append(Lezione(event["summary"], tmpGiorno, tmpData, tmpAttività, tmpDocnote, event["location"], tmpClasse, tmpTime, event["id"]))
+                        tmpLocation = "" if "location" not in event else event["location"]
+                        gCalendar.append(Lezione(event["summary"], tmpGiorno, tmpData, tmpAttività, tmpDocnote, tmpLocation, tmpClasse, tmpTime, event["id"]))
                     except Exception as e:
-                        print("Error reading from google calendar on:", event, e)
+                        print("Error reading from google calendar on:", event, "\nException:", e)
                         exit()
                 eventsNumber += len(events["items"])
 

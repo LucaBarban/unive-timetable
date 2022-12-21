@@ -37,7 +37,7 @@ def getEvents():
         tuid = event
         event = event.vobject_instance.vevent
         tsummary = event.summary.value
-        tactivity = event.description.value.split(" ")[0]
+        tactivity = event.description.value.split(" in ")[0]
         tday = event.description.value.split(" di ")[1].split("con")[0]
         tclass = event.description.value.split(" in ")[1].split(" di ")[0]
         tlocation = event.location.value
