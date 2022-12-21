@@ -1,5 +1,4 @@
 from datetime import datetime
-from re import sub
 import xml.etree.ElementTree as ET
 import requests
 
@@ -9,16 +8,15 @@ from obj_lesson import Lezione
 # anyway, the code requests the page from the url, conferts it to and xml-tree and scrapres the content.
 # as a final step lessons that are held in Aula 1 and Aula 2 at the same time will be merged
 
+
 def scrapeLessons(url, ignore) -> list[Lezione]:
     response = requests.get(url).text
     response = response[response.find(
         "<div class=\"tab-content\">"):response.find("<!-- fine col 9-->")]
     response = response[0:-7]
 
-
     # with open('testpagina.html', 'w') as file:
     #     file.write(response)
-
 
     sections = []
 
@@ -28,16 +26,16 @@ def scrapeLessons(url, ignore) -> list[Lezione]:
         if tmpStart in response:
             tmpSection = response[response.find(tmpStart):response.find(tmpFinish)]
             if i == 1:
-                sections.append("<bs>" + tmpSection[tmpSection.find("<div class=\"card-body\">")+23:-259] + "</bs>")
+                sections.append("<bs>" + tmpSection[tmpSection.find("<div class=\"card-body\">") + 23:-259] + "</bs>")
             else:
-                sections.append("<bs>" + tmpSection[tmpSection.find("<div class=\"card-body\">")+23:-282] + "</bs>")
+                sections.append("<bs>" + tmpSection[tmpSection.find("<div class=\"card-body\">") + 23:-282] + "</bs>")
 
             # with open('testpagina.html', 'w') as file:
             #     if i == 1:
             #         file.write("<bs>" + tmpSection[tmpSection.find("<div class=\"card-body\">")+23:-259] + "</bs>")
             #     else:
             #         file.write("<bs>" + tmpSection[tmpSection.find("<div class=\"card-body\">")+23:-282] + "</bs>")
-    
+
     # """
     # with open('testpagina.txt', 'w') as file:
     #     for lezione in oraribetter:
@@ -59,7 +57,7 @@ def scrapeLessons(url, ignore) -> list[Lezione]:
 
     for section in sections:
         tree = ET.ElementTree(ET.fromstring(section))
-        #ET.dump(tree)
+        # ET.dump(tree)
 
         root = tree.getroot()
 
@@ -104,19 +102,16 @@ def scrapeLessons(url, ignore) -> list[Lezione]:
                     # print(attivita)
                     # print(subject)
                     prof = tmp[2].text.title()
-                    if len(list(tmp[2])) > 0: #stupid case where things are writte into an em tag
-                        #print(list(tmp[2])[0].text.title())
+                    if len(list(tmp[2])) > 0:  # stupid case where things are writte into an em tag
+                        # print(list(tmp[2])[0].text.title())
                         try:
-                            orari.append(Lezione(subject, day, date, list(tmp[2])[0].text.title(),
-                                        prof, location, classes, time, 0))
+                            orari.append(Lezione(subject, day, date, list(tmp[2])[0].text.title(), prof, location, classes, time, 0))
                         except Exception as e:
                             print("Died scraping:", e)
                             print(subject, day, date, tmp[2].text.title(), prof, location, classes, time, 0)
 
-
                     else:
-                        orari.append(Lezione(subject, day, date, attivita,
-                                    prof, location, classes, time, 0))
+                        orari.append(Lezione(subject, day, date, attivita, prof, location, classes, time, 0))
                     # print(orari, "\nl")
             else:
                 print("rip")
