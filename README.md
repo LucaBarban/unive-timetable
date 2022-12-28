@@ -12,19 +12,15 @@ grab a release zip file.
 git clone https://github.com/LucaBarban/unive-timetable.git
 # Or download the zip file from GitHub
 ```
-For installing the dependencies you can use either nix or pip.
+For installing the dependencies you can use pip.
 ```bash 
 pip install -U -r requirements.txt
-# or
-nix develop 
 ```
 
 ## Running the script
 
 ```bash
 python3 run.py
-# or
-nix develop -c python3 run.py
 ```
 
 ## Configuration
