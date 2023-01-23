@@ -119,18 +119,18 @@ class GoogleCalendar:
         if len(calendar) > 0:
             id = self.getCalendarId("Orari Uni")
             print("Starting the creation of new events")
-            for lezione in calendar:
+            for less in calendar:
                 eventBody = {
-                    'id': hash(lezione),
-                    'summary': lezione.getsubject(),
-                    'location': lezione.getlocation(),
-                    'description': lezione.getactivity() + " in " + lezione.getclasses() + " di " + lezione.getday() + " con " + lezione.getprof(),
+                    'id': hash(less),
+                    'summary': less.getsubject(),
+                    'location': less.getlocation(),
+                    'description': less.getactivity() + " in " + less.getclasses() + " di " + less.getday() + " con " + less.getprof(),
                     'start': {
-                        'dateTime': str(datetime.strptime(lezione.getStartDateTime(), "%d/%m/%Y-%H:%M").isoformat()),
+                        'dateTime': str(datetime.strptime(less.getStartDateTime(), "%d/%m/%Y-%H:%M").isoformat()),
                         'timeZone': 'Europe/Rome',
                     },
                     'end': {
-                        'dateTime': str(datetime.strptime(lezione.getEndDateTime(), "%d/%m/%Y-%H:%M").isoformat()),
+                        'dateTime': str(datetime.strptime(less.getEndDateTime(), "%d/%m/%Y-%H:%M").isoformat()),
                         'timeZone': 'Europe/Rome',
                     }
                 }

@@ -10,25 +10,26 @@ from calendarToIcs import saveToIcs
 if utils.setup_config():
     config = configparser.ConfigParser()
     config.read("config.toml")
-    url = "https://www.unive.it/data/46/" + config['general']['year']  # url to scrape from
-    ignore = config['general']['ignore']
+    # url to scrape from
+    url = "https://www.unive.it/data/46/" + config["general"]["year"]
+    ignore = config["general"]["ignore"]
 
     oraribetter = scrapeLessons(url, ignore)
     print(str(len(oraribetter)) + " events found")
 
-    if config['general']['provider'] == 'gcal':
-        CREDENTIALS_FILE = config['gcal']['credentials']
+    if config["general"]["provider"] == "gcal":
+        CREDENTIALS_FILE = config["gcal"]["credentials"]
         googleC = GoogleCalendar(CREDENTIALS_FILE)
-        deleteCalendars, newCalendars = compareEvents(oraribetter, googleC.getFromGoogleCalendar())
-        print("Found", len(newCalendars), "new Events and", len(deleteCalendars), "to delete")
-        googleC.deleteEvents(deleteCalendars)
-        googleC.createEvents(newCalendars)
+        deleteCals, newCals = compareEvents(oraribetter, googleC.getFromGoogleCalendar())
+        print("Found", len(newCals), "new Events and", len(deleteCals), "to delete")
+        googleC.deleteEvents(deleteCals)
+        googleC.createEvents(newCals)
 
-    if config['general']['provider'] == 'caldav':
-        deleteCalendars, newCalendars = compareEvents(oraribetter, caldav.getEvents())
-        print("Found", len(newCalendars), "new Events and", len(deleteCalendars), "to delete")
-        caldav.deleteEvent(deleteCalendars)
-        caldav.createEvent(newCalendars)
+    if config["general"]["provider"] == "caldav":
+        deleteCals, newCals = compareEvents(oraribetter, caldav.getEvents())
+        print("Found", len(newCals), "new Events and", len(deleteCals), "to delete")
+        caldav.deleteEvent(deleteCals)
+        caldav.createEvent(newCals)
 
-    if config['general']['provider'] == 'ics':
+    if config["general"]["provider"] == "ics":
         saveToIcs(oraribetter)

@@ -11,9 +11,9 @@ if load():
     config = configparser.ConfigParser()
     config.read("config.toml")
     if config["general"]["provider"] == "caldav":
-        username = config['caldav']['username']
-        calendar_name = config['general']['calendar']
-        url = config['caldav']['url']
+        username = config["caldav"]["username"]
+        calendar_name = config["general"]["calendar"]
+        url = config["caldav"]["url"]
         password = keyring.get_password("Backup Nextcloud", username)
 
         with caldav.DAVClient(url=url, username=username, password=password) as client:
@@ -46,7 +46,7 @@ def getEvents():
         _dtend = event.dtend.value
         tdate = str(_dtstart.strftime("%d/%m/%Y"))
         ttime = str(_dtstart.strftime("%H:%M")) + "-" + str(_dtend.strftime("%H:%M"))
-        events.append(Lezione(tsummary, tday, tdate, tactivity, tprofessor, tlocation, tclass, ttime, tuid))
+        events.append(Lezione(tsummary, tday, tdate, tactivity, tprofessor, tlocation, tclass, ttime, tuid,))
 
     return events
 
@@ -60,7 +60,7 @@ def createEvent(events):
                 dtend=datetime.strptime(event.getEndDateTime(), "%d/%m/%Y-%H:%M"),
                 location=event.getlocation(),
                 description=event.getactivity() + " in " + event.getclasses() + " di " + event.getday() + " con " + event.getprof(),
-                timezone='Europe/Rome',
+                timezone="Europe/Rome",
             )
     print("All events in newCalendars created")
 
