@@ -7,6 +7,8 @@ calendar =
 year =
 # Array of lesson to ignore when uploding
 ignore = [ 'materia1', 'materia2' ]
+# true if you want to update events that already happened, false otherwise
+updatePastEvents = false
 
 [gcal]
 # /path/to/token

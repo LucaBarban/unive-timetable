@@ -13,6 +13,7 @@ if utils.setup_config():
     # url to scrape from
     url = "https://www.unive.it/data/46/" + config["general"]["year"]
     ignore = config["general"]["ignore"]
+    updatePastEvents = config['general']['updatePastEvents'] == "true" #conversion from str to bool
 
     oraribetter = scrapeLessons(url, ignore)
     print(str(len(oraribetter)) + " events found")
@@ -20,13 +21,13 @@ if utils.setup_config():
     if config["general"]["provider"] == "gcal":
         CREDENTIALS_FILE = config["gcal"]["credentials"]
         googleC = GoogleCalendar(CREDENTIALS_FILE)
-        deleteCals, newCals = compareEvents(oraribetter, googleC.getFromGoogleCalendar())
+        deleteCals, newCals = compareEvents(oraribetter, googleC.getFromGoogleCalendar(), updatePastEvents)
         print("Found", len(newCals), "new Events and", len(deleteCals), "to delete")
         googleC.deleteEvents(deleteCals)
         googleC.createEvents(newCals)
 
     if config["general"]["provider"] == "caldav":
-        deleteCals, newCals = compareEvents(oraribetter, caldav.getEvents())
+        deleteCals, newCals = compareEvents(oraribetter, caldav.getEvents(), updatePastEvents)
         print("Found", len(newCals), "new Events and", len(deleteCals), "to delete")
         caldav.deleteEvent(deleteCals)
         caldav.createEvent(newCals)
