@@ -17,12 +17,12 @@ def compareEvents(newcalendar, oldCalendar, updatePastEvents):
         # print("NEW CALENDAR")
         # print(less)
         # print("###############")
-        if less not in oldCalendar and ((datetime.strptime(less.getStartDateTime()) < now and updatePastEvents) or not updatePastEvents):
+        if less not in oldCalendar and ((datetime.strptime(less.getStartDateTime(), "%d/%m/%Y-%H:%M") < now and updatePastEvents) or not updatePastEvents):
             createCalendar.append(less)
     for less in oldCalendar:
         # print("OLD CALENDAR")
         # print(less)
         # print("###############")
-        if less not in newcalendar and ((datetime.strptime(less.getStartDateTime()) < now and updatePastEvents) or not updatePastEvents):
+        if less not in newcalendar and ((datetime.strptime(less.getStartDateTime(), "%d/%m/%Y-%H:%M") < now and updatePastEvents) or not updatePastEvents):
             deleteCalendar.append(less)
     return deleteCalendar, createCalendar
