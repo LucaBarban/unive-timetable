@@ -1,14 +1,12 @@
+import os
 from pathlib import Path
 from icalendar import Calendar, Event, vText
 from datetime import datetime
-import configparser
 
-import os
-
+from unive_timetable.utils import Config
 
 def saveToIcs(calendar):
-    config = configparser.ConfigParser()
-    config.read("config.toml")
+    config = Config().getData()
     cal = Calendar()
 
     for lezione in calendar:

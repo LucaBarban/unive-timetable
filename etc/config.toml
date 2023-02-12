@@ -23,7 +23,7 @@ url =
 
 [ics]
 # save in the current path (true/false)
-usePath = 
+usePath =
 # folder in whitch to save the file
-folder = 
-filename = 
+folder =
+filename =

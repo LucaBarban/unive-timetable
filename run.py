@@ -1,36 +1,35 @@
-import configparser
-import mycaldav as caldav
-import utils
+# import mycaldav as caldav
 
-from scraper import scrapeLessons
-from gcal import GoogleCalendar
-from compareEvents import compareEvents
-from calendarToIcs import saveToIcs
+from unive_timetable.utils import Config, compareEvents
+from unive_timetable.scraper import scrapeLessons
+from unive_timetable.providers.tt_gcal import GoogleCalendar
+from unive_timetable.providers.tt_caldav import CalDAV
+from unive_timetable.providers.tt_ics import saveToIcs
 
-if utils.setup_config():
-    config = configparser.ConfigParser()
-    config.read("config.toml")
-    # url to scrape from
-    url = "https://www.unive.it/data/46/" + config["general"]["year"]
-    ignore = config["general"]["ignore"]
-    updatePastEvents = config['general']['updatePastEvents'] == "true" #conversion from str to bool
+config = Config().getData()
 
-    oraribetter = scrapeLessons(url, ignore)
-    print(str(len(oraribetter)) + " events found")
+# url to scrape from
+url = "https://www.unive.it/data/46/" + config["general"]["year"]
+ignore = config["general"]["ignore"]
+updatePastEvents = config['general']['updatePastEvents']
 
-    if config["general"]["provider"] == "gcal":
-        CREDENTIALS_FILE = config["gcal"]["credentials"]
-        googleC = GoogleCalendar(CREDENTIALS_FILE)
-        deleteCals, newCals = compareEvents(oraribetter, googleC.getFromGoogleCalendar(), updatePastEvents)
-        print("Found", len(newCals), "new Events and", len(deleteCals), "to delete")
-        googleC.deleteEvents(deleteCals)
-        googleC.createEvents(newCals)
+oraribetter = scrapeLessons(url, ignore)
+print(str(len(oraribetter)) + " events found")
 
-    if config["general"]["provider"] == "caldav":
-        deleteCals, newCals = compareEvents(oraribetter, caldav.getEvents(), updatePastEvents)
-        print("Found", len(newCals), "new Events and", len(deleteCals), "to delete")
-        caldav.deleteEvent(deleteCals)
-        caldav.createEvent(newCals)
+if config["general"]["provider"] == "gcal":
+    CREDENTIALS_FILE = config["gcal"]["credentials"]
+    googleC = GoogleCalendar(CREDENTIALS_FILE)
+    deleteCals, newCals = compareEvents(oraribetter, googleC.getFromGoogleCalendar(), updatePastEvents)
+    print("Found", len(newCals), "new Events and", len(deleteCals), "to delete")
+    googleC.deleteEvents(deleteCals)
+    googleC.createEvents(newCals)
 
-    if config["general"]["provider"] == "ics":
-        saveToIcs(oraribetter)
+if config["general"]["provider"] == "caldav":
+    caldav = CalDAV()
+    deleteCals, newCals = compareEvents(oraribetter, caldav.getEvents(), updatePastEvents)
+    print("Found", len(newCals), "new Events and", len(deleteCals), "to delete")
+    caldav.deleteEvent(deleteCals)
+    caldav.createEvent(newCals)
+
+if config["general"]["provider"] == "ics":
+    saveToIcs(oraribetter)

@@ -1,4 +1,4 @@
-class Lezione:
+class Lesson:
     def __init__(self, subject, day, date, activity, prof, location, classes, time, uid):
         self.subject = subject.strip()  # subject like algebra lineare, programmazione etc
         self.day = day.strip()  # day of the week (Lunedì, Martedì...)
