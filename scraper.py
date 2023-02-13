@@ -121,11 +121,17 @@ def scrapeLessons(url, ignore) -> list[Lezione]:
     orari.sort(key=lambda Lezione: datetime.strptime(
         Lezione.getStartDateTime(), "%d/%m/%Y-%H:%M"))
 
-    # read all lessons and "merge" the ones that are held in Aula 1 and Aula 2 at the same time
+    # read all lessons and "merge" the ones that are held in Aula 1 and Aula 2 at the same time, name included (eg. Lesson Classe 1 + Lesson Classe 2 = Lesson Classe 1,2)
     oraribetter = []
     for lezione in orari:
-        if len(oraribetter) != 0 and oraribetter[-1].getStartDateTime() == lezione.getStartDateTime():
+        if len(oraribetter) != 0 and oraribetter[-1].getStartDateTime() == lezione.getStartDateTime() and oraribetter[-1].getprof() == lezione.getprof():
             oraribetter[-1].setDoubleClass()
+            tmpSubject = oraribetter[-1].getsubject().split(" ")
+            if len(tmpSubject) > 2 and tmpSubject[-2] in ["Cognomi", "Classe"]:
+                tmpNewSubject = " ".join(tmpSubject[:-1])
+                tmpNewSubject += " " + tmpSubject[-1] + "," + lezione.getsubject().split(" ")[-1]
+                oraribetter[-1].setSubject(tmpNewSubject)
+
         else:
             oraribetter.append(lezione)
     return oraribetter

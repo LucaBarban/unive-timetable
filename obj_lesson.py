@@ -11,7 +11,10 @@ class Lezione:
         self.uid = uid  # event's uid
 
     def setDoubleClass(self):
-        self.classes = self.classes
+        self.classes = "Aula 1 e 2"
+    
+    def setSubject(self, newSubjectName):
+        self.subject = newSubjectName
 
     def getsubject(self):
         return self.subject
