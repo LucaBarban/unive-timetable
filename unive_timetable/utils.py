@@ -5,25 +5,35 @@ from os.path import expanduser
 from datetime import datetime
 from unive_timetable.lesson import Lesson
 
+'''
+super simple check, but extremely inefficient (set's would be better)
+
+the date check works using this truth table
+PastDate  UpdatePast  Do It!
+0         0           1
+0         1           1
+1         0           0   # we do not want to update anything in this case
+1         1           1
+'''
 def compareEvents(newcalendar, oldCalendar, updatePastEvents):
     deleteCalendar = []
     createCalendar = []
 
     now = datetime.now()
 
-    if updatePastEvents:
+    if not updatePastEvents:
         print("Comparing future events...")
     else:
         print("Comparing all events...")
 
-    # super simple check, but extremely inefficient (set's would be better)
     for less in newcalendar:
-        if less not in oldCalendar and ((datetime.strptime(less.getStartDateTime()) < now and updatePastEvents) or not updatePastEvents):
+        if less not in oldCalendar and not (datetime.strptime(less.getStartDateTime(), "%d/%m/%Y-%H:%M") < now and not updatePastEvents):
             createCalendar.append(less)
     for less in oldCalendar:
-        if less not in newcalendar and ((datetime.strptime(less.getStartDateTime()) < now and updatePastEvents) or not updatePastEvents):
+        if less not in newcalendar and not (datetime.strptime(less.getStartDateTime(), "%d/%m/%Y-%H:%M") < now and not updatePastEvents):
             deleteCalendar.append(less)
     return deleteCalendar, createCalendar
+
 
 class Config:
     def __init__(self):
@@ -39,15 +49,15 @@ class Config:
                 self.path = path
                 break
         else:
-            self.generate(conf_paths[0])
+            self.generate(conf_paths[1])
 
-        with open(self.path) as f:
+        with open(self.path, encoding='UTF-8') as f:
             self.data = toml.load(f)
 
     def generate(self, path):
         try:
             shutil.copy("./etc/config.toml", path)
-            print("I craeted a new config in the root of the project")
+            print("I craeted a new config under " + path)
         except FileNotFoundError:
             print("There's something wrong in your install.\n",
                   "Please check a correct at this url:\n",

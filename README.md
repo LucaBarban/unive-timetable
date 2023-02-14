@@ -20,7 +20,7 @@ pip install -U -r requirements.txt
 ## Running the script
 
 ```bash
-python3 run.py
+python3 app.py
 ```
 
 ## Configuration

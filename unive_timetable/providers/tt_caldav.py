@@ -1,6 +1,6 @@
 import caldav
-import configparser
 import keyring
+import getpass
 
 from datetime import datetime
 from unive_timetable.lesson import Lesson
@@ -10,25 +10,30 @@ from unive_timetable.utils import Config
 class CalDAV:
     def __init__(self):
         config = Config().getData()
-        if config["general"]["provider"] == "caldav":
-            username = config["caldav"]["username"]
-            calendar_name = config["general"]["calendar"]
-            url = config["caldav"]["url"]
-            password = keyring.get_password("syncall_caldav", username)
+        username = config["caldav"]["username"]
+        calendar_name = config["general"]["calendar"]
+        url = config["caldav"]["url"]
+        provider = config["caldav"]["provider"]
+        password = keyring.get_password("unive_timetable_" + provider, username)
+        if password == None:
+            pswd = getpass.getpass('Enter your password for your caldav server: ')
+            password = keyring.set_password("unive_timetable_" + provider, username, pswd)
+            password = keyring.get_password("unive_timetable_" + provider, username)
 
-            with caldav.DAVClient(url=url, username=username, password=password) as client:
-                my_principal = client.principal()
+        with caldav.DAVClient(url=url, username=username, password=password) as client:
+            my_principal = client.principal()
 
-            try:
-                # This will raise a NotFoundError if calendar does not exist
-                calendar = my_principal.calendar(name=calendar_name)
-                assert calendar
-            except Exception:
-                # If the configured calendar is not found it creates it
-                print("Making calendar: " + calendar_name)
-                calendar = my_principal.make_calendar(name=calendar_name)
+        try:
+            # This will raise a NotFoundError if calendar does not exist
+            self.calendar = my_principal.calendar(name=calendar_name)
+            assert self.calendar
+        except NotFoundError:
+            # If the configured calendar is not found it creates it
+            print("Making calendar: " + calendar_name)
+            self.calendar = my_principal.make_calendar(name=calendar_name)
 
-            self.all_events = calendar.events()
+        self.all_events = self.calendar.events()
+
 
 
     def getEvents(self) -> list[Lesson]:
@@ -54,7 +59,7 @@ class CalDAV:
     def createEvent(self, events):
         for event in events:
             if len(events) > 0:
-                calendar.save_event(
+                self.calendar.save_event(
                     summary=event.getsubject(),
                     dtstart=datetime.strptime(event.getStartDateTime(), "%d/%m/%Y-%H:%M"),
                     dtend=datetime.strptime(event.getEndDateTime(), "%d/%m/%Y-%H:%M"),
