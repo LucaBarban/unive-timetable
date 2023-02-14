@@ -1,14 +1,11 @@
+import os
 from pathlib import Path
 from icalendar import Calendar, Event, vText
 from datetime import datetime
-import configparser
 
-import os
+from unive_timetable.utils import Config
 
-
-def saveToIcs(calendar):
-    config = configparser.ConfigParser()
-    config.read("config.toml")
+def saveToIcs(calendar, configParser):
     cal = Calendar()
 
     for lezione in calendar:
@@ -36,10 +33,10 @@ def saveToIcs(calendar):
         cal.add_component(event)
 
     directory = None
-    if config["ics"]["usepath"] == "true":
-        directory = Path.cwd() / config["ics"]["folder"]
+    if configParser["ics"]["usepath"] == "true":
+        directory = Path.cwd() / configParser["ics"]["folder"]
     else:
-        directory = Path(config["ics"]["folder"])
+        directory = Path(configParser["ics"]["folder"])
     try:
         print(directory)
         directory.mkdir(parents=True, exist_ok=False)
@@ -49,6 +46,6 @@ def saveToIcs(calendar):
         print("Folder created")
 
     print("Saving ics file to disk...")
-    f = open(os.path.join(directory, config["ics"]["filename"]), 'wb')
+    f = open(os.path.join(directory, configParser["ics"]["filename"]), 'wb')
     f.write(cal.to_ical())
     f.close()

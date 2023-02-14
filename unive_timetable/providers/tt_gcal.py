@@ -4,25 +4,24 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from datetime import datetime
-import configparser
 
-from obj_lesson import Lezione
+from unive_timetable.utils import Config
+from unive_timetable.lesson import Lesson
 
 # the implementaton is some sort of a remix from (conmments included :P):
 # https://karenapp.io/articles/how-to-automate-google-calendar-with-python-using-the-calendar-api/
 # https://developers.google.com/calendar/api
 
-config = configparser.ConfigParser()
-config.read("config.toml")
-
 
 class GoogleCalendar:
     service = None
+    config = None
 
-    def __init__(self, CREDENTIALS_FILE):
+    def __init__(self, CREDENTIALS_FILE, configParser):
         # If modifying these scopes, delete the file token.pickle.
         SCOPES = ['https://www.googleapis.com/auth/calendar']
         creds = None
+        self.config = configParser
 
         # The file token.pickle stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
@@ -61,9 +60,9 @@ class GoogleCalendar:
         print("The given calendar name hasn't been found! ({s})".format(s=calendarName))
         exit()
 
-    def getFromGoogleCalendar(self) -> list[Lezione]:
+    def getFromGoogleCalendar(self) -> list[Lesson]:
         gCalendar = []
-        id = self.getCalendarId(config['general']['calendar'])  # "Orari Uni" is the name of the calendar on gcalendar (will get moved to a config file)
+        id = self.getCalendarId(self.config['general']['calendar'])  # "Orari Uni" is the name of the calendar on gcalendar (will get moved to a config file)
         events = self.service.events().list(calendarId=id, pageToken=None).execute()  # (should) get the first event in the specified calendar
 
         eventsNumber = 0
@@ -86,7 +85,7 @@ class GoogleCalendar:
                         tmpTimeList = event["end"]["dateTime"].split("T")[1].split(":")
                         tmpTime += tmpTimeList[0] + ":" + tmpTimeList[1]
                         tmpLocation = "" if "location" not in event else event["location"]
-                        gCalendar.append(Lezione(event["summary"], tmpGiorno, tmpData, tmpAttività, tmpDocnote, tmpLocation, tmpClasse, tmpTime, event["id"]))
+                        gCalendar.append(Lesson(event["summary"], tmpGiorno, tmpData, tmpAttività, tmpDocnote, tmpLocation, tmpClasse, tmpTime, event["id"]))
                     except Exception as e:
                         print("Error reading from google calendar on:", event, "\nException:", e)
                         exit()

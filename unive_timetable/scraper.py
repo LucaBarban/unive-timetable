@@ -2,14 +2,14 @@ from datetime import datetime
 import xml.etree.ElementTree as ET
 import requests
 
-from obj_lesson import Lezione
+from unive_timetable.lesson import Lesson
 
 # if you think that i remenber how all of this works, then you are wrong :)
 # anyway, the code requests the page from the url, conferts it to and xml-tree and scrapres the content.
 # as a final step lessons that are held in Aula 1 and Aula 2 at the same time will be merged
 
 
-def scrapeLessons(url, ignore) -> list[Lezione]:
+def scrapeLessons(url, ignore) -> list[Lesson]:
     response = requests.get(url).text
     response = response[response.find(
         "<div class=\"tab-content\">"):response.find("<!-- fine col 9-->")]
@@ -105,21 +105,21 @@ def scrapeLessons(url, ignore) -> list[Lezione]:
                     if len(list(tmp[2])) > 0:  # stupid case where things are writte into an em tag
                         # print(list(tmp[2])[0].text.title())
                         try:
-                            orari.append(Lezione(subject, day, date, list(tmp[2])[0].text.title(), prof, location, classes, time, 0))
+                            orari.append(Lesson(subject, day, date, list(tmp[2])[0].text.title(), prof, location, classes, time, 0))
                         except Exception as e:
                             print("Died scraping:", e)
                             print(subject, day, date, tmp[2].text.title(), prof, location, classes, time, 0)
 
                     else:
-                        orari.append(Lezione(subject, day, date, attivita, prof, location, classes, time, 0))
+                        orari.append(Lesson(subject, day, date, attivita, prof, location, classes, time, 0))
                     # print(orari, "\nl")
             else:
                 print("rip")
                 exit()
 
     # sort the lessons (useful for the next step)
-    orari.sort(key=lambda Lezione: datetime.strptime(
-        Lezione.getStartDateTime(), "%d/%m/%Y-%H:%M"))
+    orari.sort(key=lambda Lesson: datetime.strptime(
+        Lesson.getStartDateTime(), "%d/%m/%Y-%H:%M"))
 
     # read all lessons and "merge" the ones that are held in Aula 1 and Aula 2 at the same time, name included (eg. Lesson Classe 1 + Lesson Classe 2 = Lesson Classe 1,2)
     oraribetter = []

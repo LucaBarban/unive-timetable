@@ -1,7 +1,8 @@
 caldav
-icalendar
-keyring
-requests
 google-api-core
 google-api-python-client
 google-auth-oauthlib
+icalendar
+keyring
+requests
+toml
