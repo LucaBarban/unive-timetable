@@ -8,8 +8,8 @@ from unive_timetable.utils import Config
 
 
 class CalDAV:
-    def __init__(self):
-        config = Config().getData()
+    def __init__(self, configParser):
+        config = configParser
         username = config["caldav"]["username"]
         calendar_name = config["general"]["calendar"]
         url = config["caldav"]["url"]

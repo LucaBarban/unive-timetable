@@ -24,14 +24,14 @@ def main():
 
     if config["general"]["provider"] == "gcal":
         CREDENTIALS_FILE = config["gcal"]["credentials"]
-        googleC = GoogleCalendar(CREDENTIALS_FILE)
+        googleC = GoogleCalendar(CREDENTIALS_FILE, config)
         deleteCals, newCals = compareEvents(oraribetter, googleC.getFromGoogleCalendar(), updatePastEvents)
         print("Found", len(newCals), "new Events and", len(deleteCals), "to delete")
         googleC.deleteEvents(deleteCals)
         googleC.createEvents(newCals)
 
     if config["general"]["provider"] == "caldav":
-        caldav = CalDAV()
+        caldav = CalDAV(config)
         deleteCals, newCals = compareEvents(oraribetter, caldav.getEvents(), updatePastEvents)
         print("Found", len(newCals), "new Events and", len(deleteCals), "to delete")
         caldav.deleteEvent(deleteCals)

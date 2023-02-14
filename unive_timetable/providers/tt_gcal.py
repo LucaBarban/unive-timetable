@@ -12,15 +12,16 @@ from unive_timetable.lesson import Lesson
 # https://karenapp.io/articles/how-to-automate-google-calendar-with-python-using-the-calendar-api/
 # https://developers.google.com/calendar/api
 
-config = Config().getData()
 
 class GoogleCalendar:
     service = None
+    config = None
 
-    def __init__(self, CREDENTIALS_FILE):
+    def __init__(self, CREDENTIALS_FILE, configParser):
         # If modifying these scopes, delete the file token.pickle.
         SCOPES = ['https://www.googleapis.com/auth/calendar']
         creds = None
+        self.config = configParser
 
         # The file token.pickle stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
@@ -61,7 +62,7 @@ class GoogleCalendar:
 
     def getFromGoogleCalendar(self) -> list[Lesson]:
         gCalendar = []
-        id = self.getCalendarId(config['general']['calendar'])  # "Orari Uni" is the name of the calendar on gcalendar (will get moved to a config file)
+        id = self.getCalendarId(self.config['general']['calendar'])  # "Orari Uni" is the name of the calendar on gcalendar (will get moved to a config file)
         events = self.service.events().list(calendarId=id, pageToken=None).execute()  # (should) get the first event in the specified calendar
 
         eventsNumber = 0
