@@ -73,7 +73,6 @@ class GoogleCalendar:
                 for event in events["items"]:
                     try:
                         tmpAttività = event["description"].split(" in ")[0]
-                        tmpGiorno = event["description"].split(" di ")[1].split(" con ")[0]
                         tmpClasse = event["description"].split(" in ")[1].split(" di ")[0]
                         tmpDocnote = event["description"].split(" con ")[1]
 
@@ -85,7 +84,7 @@ class GoogleCalendar:
                         tmpTimeList = event["end"]["dateTime"].split("T")[1].split(":")
                         tmpTime += tmpTimeList[0] + ":" + tmpTimeList[1]
                         tmpLocation = "" if "location" not in event else event["location"]
-                        gCalendar.append(Lesson(event["summary"], tmpGiorno, tmpData, tmpAttività, tmpDocnote, tmpLocation, tmpClasse, tmpTime, event["id"]))
+                        gCalendar.append(Lesson(event["summary"], tmpData, tmpAttività, tmpDocnote, tmpLocation, tmpClasse, tmpTime, event["id"]))
                     except Exception as e:
                         print("Error reading from google calendar on:", event, "\nException:", e)
                         exit()
@@ -123,7 +122,7 @@ class GoogleCalendar:
                     'id': hash(less),
                     'summary': less.getsubject(),
                     'location': less.getlocation(),
-                    'description': less.getactivity() + " in " + less.getclasses() + " di " + less.getday() + " con " + less.getprof(),
+                    'description': less.getactivity() + " in " + less.getclasses() + " con " + less.getprof(),
                     'start': {
                         'dateTime': str(datetime.strptime(less.getStartDateTime(), "%d/%m/%Y-%H:%M").isoformat()),
                         'timeZone': 'Europe/Rome',

@@ -74,7 +74,7 @@ def scrapeLessons(url, ignore) -> list[Lesson]:
 
                 children1 = list(children1)[0]
 
-                day = list(children1)[1].text
+                # day = list(children1)[1].text
                 tmp = list(children1)[1]
                 tmporario = str(tmp[0].text).split(" - ")
                 time = tmporario[0] + "-" + tmporario[1]
@@ -105,13 +105,13 @@ def scrapeLessons(url, ignore) -> list[Lesson]:
                     if len(list(tmp[2])) > 0:  # stupid case where things are writte into an em tag
                         # print(list(tmp[2])[0].text.title())
                         try:
-                            orari.append(Lesson(subject, day, date, list(tmp[2])[0].text.title(), prof, location, classes, time, 0))
+                            orari.append(Lesson(subject, date, list(tmp[2])[0].text.title(), prof, location, classes, time, 0))
                         except Exception as e:
                             print("Died scraping:", e)
-                            print(subject, day, date, tmp[2].text.title(), prof, location, classes, time, 0)
+                            print(subject, date, tmp[2].text.title(), prof, location, classes, time, 0)
 
                     else:
-                        orari.append(Lesson(subject, day, date, attivita, prof, location, classes, time, 0))
+                        orari.append(Lesson(subject, date, attivita, prof, location, classes, time, 0))
                     # print(orari, "\nl")
             else:
                 print("rip")

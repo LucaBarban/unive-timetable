@@ -1,10 +1,10 @@
-import caldav
+import sys
+from datetime import datetime
 import keyring
 import getpass
-
-from datetime import datetime
+from caldav import DAVClient
+from caldav import error
 from unive_timetable.lesson import Lesson
-from unive_timetable.utils import Config
 
 
 class CalDAV:
@@ -15,22 +15,24 @@ class CalDAV:
         url = config["caldav"]["url"]
         provider = config["caldav"]["provider"]
         password = keyring.get_password("unive_timetable_" + provider, username)
-        if password == None:
+        if password is None:
             pswd = getpass.getpass('Enter your password for your caldav server: ')
             password = keyring.set_password("unive_timetable_" + provider, username, pswd)
             password = keyring.get_password("unive_timetable_" + provider, username)
 
-        with caldav.DAVClient(url=url, username=username, password=password) as client:
+        with DAVClient(url=url, username=username, password=password) as client:
             my_principal = client.principal()
 
         try:
             # This will raise a NotFoundError if calendar does not exist
             self.calendar = my_principal.calendar(name=calendar_name)
             assert self.calendar
-        except NotFoundError:
+        except error.NotFoundError:
             # If the configured calendar is not found it creates it
             print("Making calendar: " + calendar_name)
             self.calendar = my_principal.make_calendar(name=calendar_name)
+            print("Rerun and make shoure the calendar has been created")
+            sys.exit(-1)
 
         self.all_events = self.calendar.events()
 
@@ -43,15 +45,14 @@ class CalDAV:
             event = event.vobject_instance.vevent
             tsummary = event.summary.value
             tactivity = event.description.value.split(" in ")[0]
-            tday = event.description.value.split(" di ")[1].split("con")[0]
-            tclass = event.description.value.split(" in ")[1].split(" di ")[0]
+            tclass = event.description.value.split(" in ")[1].split(" con ")[0]
             tlocation = event.location.value
             tprofessor = event.description.value.split(" con ")[1]
             _dtstart = event.dtstart.value
             _dtend = event.dtend.value
             tdate = str(_dtstart.strftime("%d/%m/%Y"))
             ttime = str(_dtstart.strftime("%H:%M")) + "-" + str(_dtend.strftime("%H:%M"))
-            events.append(Lesson(tsummary, tday, tdate, tactivity, tprofessor, tlocation, tclass, ttime, tuid,))
+            events.append(Lesson(tsummary, tdate, tactivity, tprofessor, tlocation, tclass, ttime, tuid,))
 
         return events
 
@@ -64,7 +65,7 @@ class CalDAV:
                     dtstart=datetime.strptime(event.getStartDateTime(), "%d/%m/%Y-%H:%M"),
                     dtend=datetime.strptime(event.getEndDateTime(), "%d/%m/%Y-%H:%M"),
                     location=event.getlocation(),
-                    description=event.getactivity() + " in " + event.getclasses() + " di " + event.getday() + " con " + event.getprof(),
+                    description=event.getactivity() + " in " + event.getclasses() + " con " + event.getprof(),
                     timezone="Europe/Rome",
                 )
         print("All events in newCalendars created")

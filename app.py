@@ -21,6 +21,7 @@ def main():
 
     oraribetter = scrapeLessons(url, ignore)
     print(str(len(oraribetter)) + " events found")
+    # print(oraribetter[0])
 
     if config["general"]["provider"] == "gcal":
         CREDENTIALS_FILE = config["gcal"]["credentials"]
@@ -33,12 +34,13 @@ def main():
     if config["general"]["provider"] == "caldav":
         caldav = CalDAV(config)
         deleteCals, newCals = compareEvents(oraribetter, caldav.getEvents(), updatePastEvents)
+        # print(caldav.getEvents()[0])
         print("Found", len(newCals), "new Events and", len(deleteCals), "to delete")
         caldav.deleteEvent(deleteCals)
         caldav.createEvent(newCals)
 
     if config["general"]["provider"] == "ics":
-        saveToIcs(oraribetter)
+        saveToIcs(oraribetter, updatePastEvents)
 
 if __name__ == "__main__":
     main()
