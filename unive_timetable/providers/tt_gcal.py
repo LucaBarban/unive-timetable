@@ -73,7 +73,7 @@ class GoogleCalendar:
                 for event in events["items"]:
                     try:
                         tmpAttività = event["description"].split(" in ")[0]
-                        tmpClasse = event["description"].split(" in ")[1].split(" di ")[0]
+                        tmpClasse = event["description"].split(" in ")[1].split(" di ")[0].split(" con ")[0]
                         tmpDocnote = event["description"].split(" con ")[1]
 
                         tmpDataPieces = event["start"]["dateTime"].split("T")[0].split("-")
