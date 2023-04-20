@@ -1,9 +1,10 @@
+import getpass
 import sys
 from datetime import datetime
+
 import keyring
-import getpass
-from caldav import DAVClient
-from caldav import error
+from caldav import DAVClient, error
+
 from unive_timetable.lesson import Lesson
 
 

@@ -1,8 +1,10 @@
-import shutil
 import os
-import toml
-from os.path import expanduser
+import shutil
 from datetime import datetime
+from os.path import expanduser
+
+import toml
+
 from unive_timetable.lesson import Lesson
 
 '''
