@@ -1,6 +1,7 @@
 from datetime import datetime
 import xml.etree.ElementTree as ET
 import requests
+import re
 from bs4 import BeautifulSoup
 
 from unive_timetable.lesson import Lesson
@@ -8,13 +9,18 @@ from unive_timetable.lesson import Lesson
 # request the page from the url and scrapre the content via beautifulsoup4
 # then lessons that are held in different rooms at the same time will be merged
 
+def shouldIgnore(subject, ignore):
+    for x in ignore:
+        if re.match(x, subject):
+            return True
+    return False
 
 def scrapeLessons(url, ignore) -> list[Lesson]:
     timetable = []
 
     soup = BeautifulSoup(requests.get(url).content, "html.parser")   #initialize beautifulsoup
     periods = soup.select_one("div.tab-content")                     #get the useful contents
-    
+
     nperiods = 0
     for period in periods:
         if period != "\n":                                           #filter out useless stuff
@@ -26,11 +32,10 @@ def scrapeLessons(url, ignore) -> list[Lesson]:
         for element in period:
             if element.name == "h5": #if the tag is for a subject
                 subject = str(element.findChild().contents).split("\\n\\t")[1].split("\"")[0].split(", <br/>")[0].replace("'", "").strip()   #get the actual title from the link of the subject, split it from the venice/cfu part and clean it up from the formatting
-                dontadd = True if subject in ignore else False   #set dontadd to True if the subject has to be ignored, False otherwise
+                dontadd = shouldIgnore(subject, ignore)   #set dontadd to True if the subject has to be ignored, False otherwise
             elif element.name == "div" and not dontadd: #if the tag is for a part of the timetable and it can be added
                 collapseid = "collapse"+str(element.get("id"))[6:] #go from giorno-1-1-1 to 1-1-1 to collapse-1-1-1 (the id of the div with the actual entrys from the lessons)
                 daydata = element.find_all("div", {"class:", "row"})[0].find_all("div") #get the collapsable row with the day, time, place info
-                
                 tmphour = "".join(daydata[1].text.split(" ")[1:])   #remove the day from the time part (eg. "Martedì 8:00 - 9:00" becomes "8:00-9:00")
                 tmproom = daydata[3].text   #the room where the lessons will be held (eg. Aula 1)
                 tmplocation = daydata[4].text   #the building where the romm is
@@ -58,6 +63,6 @@ def scrapeLessons(url, ignore) -> list[Lesson]:
         else:
             timetablebtr.append(lesson)
     return timetablebtr
-        
-                                         
-            
+
+
+
