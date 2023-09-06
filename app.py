@@ -8,11 +8,13 @@ def main():
     config = Config().getData()
 
     # url to scrape from
-    url = "https://www.unive.it/data/it/1592/orario-lezioni/" + config["general"]["year"]
     ignore = config["general"]["ignore"]
     updatePastEvents = config['general']['updatePastEvents']
 
-    oraribetter = scrapeLessons(url, ignore)
+    oraribetter = []
+    for year in config["general"]["years"]:
+        url = "https://www.unive.it/data/it/1592/orario-lezioni/" + year
+        oraribetter = oraribetter + scrapeLessons(url, ignore)
     print(str(len(oraribetter)) + " events found")
 
     if config["general"]["provider"] == "gcal":
