@@ -1,4 +1,5 @@
 caldav
+beautifulsoup4
 google-api-core
 google-api-python-client
 google-auth-oauthlib
