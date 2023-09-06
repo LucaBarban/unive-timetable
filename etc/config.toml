@@ -3,8 +3,8 @@
 provider =
 # calendar where upload the time table
 calendar =
-# Accademic year: 1, 2, 3
-year =
+# Accademic years: ["1"], ["2", "3"], etc..
+years = 
 # Array of lesson to ignore when uploding
 ignore = [ 'materia1', 'materia2' ]
 # true if you want to update events that already happened, false otherwise
