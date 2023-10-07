@@ -1,12 +1,14 @@
-import pickle
+import logging as log
 import os
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
+import pickle
 from datetime import datetime
 
-from unive_timetable.utils import Config
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+
 from unive_timetable.lesson import Lesson
+from unive_timetable.utils import Config
 
 # the implementaton is some sort of a remix from (conmments included :P):
 # https://karenapp.io/articles/how-to-automate-google-calendar-with-python-using-the-calendar-api/
@@ -48,7 +50,7 @@ class GoogleCalendar:
     def getCalendarId(self, calendarName):
         calendars_result = self.service.calendarList().list().execute()
         calendars = calendars_result.get('items', [])
-        print("Retriving calendar's events...")
+        log.info("Retriving calendar's events...")
 
         if not calendars:
             print('No calendars found!')
@@ -86,7 +88,7 @@ class GoogleCalendar:
                         tmpLocation = "" if "location" not in event else event["location"]
                         gCalendar.append(Lesson(event["summary"], tmpData, tmpAttività, tmpDocnote, tmpLocation, tmpClasse, tmpTime, event["id"]))
                     except Exception as e:
-                        print("Error reading from google calendar on:", event, "\nException:", e)
+                        log.error(f"Error reading from google calendar on: {event}\nException: {e}")
                         exit()
                 eventsNumber += len(events["items"])
 
@@ -94,13 +96,13 @@ class GoogleCalendar:
                 if "nextPageToken" not in events or not events["nextPageToken"]:  # if there are no more events, stop iterating
                     break
                 events = self.service.events().list(calendarId=id, pageToken=events["nextPageToken"]).execute()  # save the next events form gcalendar to parse them
-            print(eventsNumber, "events on google calendar found")
+            log.info(f"{eventsNumber} events on google calendar found")
             return gCalendar
 
     def deleteEvents(self, calendar):
         if len(calendar) > 0:
             id = self.getCalendarId("Orari Uni")
-            print("Starting the deletion of removed/modified events")
+            log.info("Starting the deletion of removed/modified events")
             for event in calendar:
                 try:
                     self.service.events().delete(
@@ -108,15 +110,14 @@ class GoogleCalendar:
                         eventId=event.getUID(),
                     ).execute()
                 except Exception as e:
-                    print("Failed to delete event: ", event)
-                    print(e)
+                    log.error(f"Failed to delete event: {event}\nExeption: {e}")
                     exit()
-            print("Events in oldCalendar deleted")
+            log.info("Events in oldCalendar deleted")
 
     def createEvents(self, calendar):
         if len(calendar) > 0:
             id = self.getCalendarId("Orari Uni")
-            print("Starting the creation of new events")
+            log.info("Starting the creation of new events")
             for less in calendar:
                 eventBody = {
                     'id': hash(less),
@@ -133,4 +134,4 @@ class GoogleCalendar:
                     }
                 }
                 self.service.events().insert(calendarId=id, body=eventBody).execute()
-            print("All events in newCalendars created")
+            log.info("All events in newCalendars created")

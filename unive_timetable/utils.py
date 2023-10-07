@@ -1,3 +1,4 @@
+import logging as log
 import os
 import shutil
 from datetime import datetime
@@ -24,9 +25,9 @@ def compareEvents(newcalendar, oldCalendar, updatePastEvents):
     now = datetime.now()
 
     if not updatePastEvents:
-        print("Comparing future events...")
+        log.info("Comparing future events...")
     else:
-        print("Comparing all events...")
+        log.info("Comparing all events...")
 
     for less in newcalendar:
         if less not in oldCalendar and not (datetime.strptime(less.getStartDateTime(), "%d/%m/%Y-%H:%M") < now and not updatePastEvents):
@@ -39,7 +40,7 @@ def compareEvents(newcalendar, oldCalendar, updatePastEvents):
 
 class Config:
     def __init__(self):
-        print("Checking config file")
+        log.debug("Checking config file")
         home = expanduser("~")
         xdg_conf = os.getenv("XDG_CONFIG_HOME", home + "/.config" )
         conf_paths = [
@@ -59,9 +60,9 @@ class Config:
     def generate(self, path):
         try:
             shutil.copy("./etc/config.toml", path)
-            print("I craeted a new config under " + path)
+            log.info(f"I craeted a new config under: {path}")
         except FileNotFoundError:
-            print("There's something wrong in your install.\n",
+            log.info("There's something wrong in your install.\n",
                   "Please check a correct at this url:\n",
                   "https://github.com/LucaBarban/unive-timetable/blob/main/etc/config.toml\n")
         exit()

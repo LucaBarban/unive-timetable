@@ -1,9 +1,12 @@
+import logging as log
 import os
-from pathlib import Path
-from icalendar import Calendar, Event, vText
 from datetime import datetime
+from pathlib import Path
+
+from icalendar import Calendar, Event, vText
 
 from unive_timetable.utils import Config
+
 
 def saveToIcs(calendar, configParser):
     cal = Calendar()
@@ -38,14 +41,14 @@ def saveToIcs(calendar, configParser):
     else:
         directory = Path(configParser["ics"]["folder"])
     try:
-        print(directory)
+        log.debug(directory)
         directory.mkdir(parents=True, exist_ok=False)
     except FileExistsError:
-        print("Folder exists")
+        log.debug("Folder exists")
     else:
-        print("Folder created")
+        log.debug("Folder created")
 
-    print("Saving ics file to disk...")
+    log.info("Saving ics file to disk...")
     f = open(os.path.join(directory, configParser["ics"]["filename"]), 'wb')
     f.write(cal.to_ical())
     f.close()

@@ -1,4 +1,5 @@
 import getpass
+import logging as log
 import sys
 from datetime import datetime
 
@@ -30,13 +31,12 @@ class CalDAV:
             assert self.calendar
         except error.NotFoundError:
             # If the configured calendar is not found it creates it
-            print("Making calendar: " + calendar_name)
+            log.info(f"Making calendar: {calendar_name}")
             self.calendar = my_principal.make_calendar(name=calendar_name)
-            print("Rerun and make shoure the calendar has been created")
+            log.info("Rerun and make shoure the calendar has been created")
             sys.exit(-1)
 
         self.all_events = self.calendar.events()
-
 
 
     def getEvents(self) -> list[Lesson]:
@@ -69,7 +69,7 @@ class CalDAV:
                     description=event.getactivity() + " in " + event.getclasses() + " con " + event.getprof(),
                     timezone="Europe/Rome",
                 )
-        print("All events in newCalendars created")
+        log.info("All events in newCalendars created")
 
 
     def deleteEvent(self, events):
