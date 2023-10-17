@@ -1,7 +1,7 @@
 import getpass
 import logging as log
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 import keyring
 from caldav import DAVClient, error
@@ -49,26 +49,25 @@ class CalDAV:
             tclass = event.description.value.split(" in ")[1].split(" con ")[0]
             tlocation = event.location.value
             tprofessor = event.description.value.split(" con ")[1]
-            _dtstart = event.dtstart.value
-            _dtend = event.dtend.value
+            # Represent date in localtimezone format sinze by default CalDAV will
+            # output a datetime object in UTC timezone
+            _dtstart = event.dtstart.value.replace(tzinfo=timezone.utc).astimezone(tz=None)
+            _dtend = event.dtend.value.replace(tzinfo=timezone.utc).astimezone(tz=None)
             tdate = str(_dtstart.strftime("%d/%m/%Y"))
             ttime = str(_dtstart.strftime("%H:%M")) + "-" + str(_dtend.strftime("%H:%M"))
             events.append(Lesson(tsummary, tdate, tactivity, tprofessor, tlocation, tclass, ttime, tuid,))
 
         return events
 
-
     def createEvent(self, events):
         for event in events:
-            if len(events) > 0:
-                self.calendar.save_event(
-                    summary=event.getsubject(),
-                    dtstart=datetime.strptime(event.getStartDateTime(), "%d/%m/%Y-%H:%M"),
-                    dtend=datetime.strptime(event.getEndDateTime(), "%d/%m/%Y-%H:%M"),
-                    location=event.getlocation(),
-                    description=event.getactivity() + " in " + event.getclasses() + " con " + event.getprof(),
-                    timezone="Europe/Rome",
-                )
+            self.calendar.save_event(
+                summary=event.getsubject(),
+                dtstart=datetime.strptime(event.getStartDateTime(), "%d/%m/%Y-%H:%M"),
+                dtend=datetime.strptime(event.getEndDateTime(), "%d/%m/%Y-%H:%M"),
+                location=event.getlocation(),
+                description=event.getactivity() + " in " + event.getclasses() + " con " + event.getprof(),
+            )
         log.info("All events in newCalendars created")
 
 

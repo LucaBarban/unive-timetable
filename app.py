@@ -34,7 +34,8 @@ def main():
 
     if config["general"]["provider"] == "caldav":
         caldav = CalDAV(config)
-        deleteCals, newCals = compareEvents(oraribetter, caldav.getEvents(), updatePastEvents)
+        caldav_events = caldav.getEvents()
+        deleteCals, newCals = compareEvents(oraribetter, caldav_events, updatePastEvents)
         log.info(f"Found {len(newCals)} new Events and {len(deleteCals)} to delete")
         caldav.deleteEvent(deleteCals)
         caldav.createEvent(newCals)
