@@ -59,7 +59,7 @@ class CalDAV:
 
         return events
 
-    def createEvent(self, events):
+    def createEvents(self, events):
         for event in events:
             self.calendar.save_event(
                 summary=event.getsubject(),
@@ -71,7 +71,7 @@ class CalDAV:
         log.info("All events in newCalendars created")
 
 
-    def deleteEvent(self, events):
+    def deleteEvents(self, events):
         if len(events) > 0:
             for event in events:
                 event.getUID().delete()
