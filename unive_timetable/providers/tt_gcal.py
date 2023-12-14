@@ -21,7 +21,7 @@ class GoogleCalendar:
 
     def __init__(self, CREDENTIALS_FILE, configParser):
         # If modifying these scopes, delete the file token.pickle.
-        SCOPES = ['https://www.googleapis.com/auth/calendar']
+        SCOPES = ["https://www.googleapis.com/auth/calendar"]
         creds = None
         self.config = configParser
 
@@ -29,8 +29,8 @@ class GoogleCalendar:
         # created automatically when the authorization flow completes for the first
         # time.
 
-        if os.path.exists('token.pickle'):
-            with open('token.pickle', 'rb') as token:
+        if os.path.exists("token.pickle"):
+            with open("token.pickle", "rb") as token:
                 creds = pickle.load(token)
 
         # If there are no (valid) credentials available, let the user log in.
@@ -39,24 +39,25 @@ class GoogleCalendar:
                 creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    CREDENTIALS_FILE, SCOPES)
+                    CREDENTIALS_FILE, SCOPES
+                )
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
-            with open('token.pickle', 'wb') as token:
+            with open("token.pickle", "wb") as token:
                 pickle.dump(creds, token)
 
-        self.service = build('calendar', 'v3', credentials=creds)
+        self.service = build("calendar", "v3", credentials=creds)
 
     def getCalendarId(self, calendarName):
         calendars_result = self.service.calendarList().list().execute()
-        calendars = calendars_result.get('items', [])
+        calendars = calendars_result.get("items", [])
         log.info("Retriving calendar's events...")
 
         if not calendars:
-            print('No calendars found!')
+            print("No calendars found!")
         for calendar in calendars:
-            summary = calendar['summary']
-            id = calendar['id']
+            summary = calendar["summary"]
+            id = calendar["id"]
             if summary == calendarName:
                 return id
         print("The given calendar name hasn't been found! ({s})".format(s=calendarName))
@@ -64,38 +65,78 @@ class GoogleCalendar:
 
     def getFromGoogleCalendar(self) -> list[Lesson]:
         gCalendar = []
-        id = self.getCalendarId(self.config['general']['calendar'])  # "Orari Uni" is the name of the calendar on gcalendar (will get moved to a config file)
-        events = self.service.events().list(calendarId=id, pageToken=None).execute()  # (should) get the first event in the specified calendar
+        id = self.getCalendarId(
+            self.config["general"]["calendar"]
+        )  # "Orari Uni" is the name of the calendar on gcalendar (will get moved to a config file)
+        events = (
+            self.service.events().list(calendarId=id, pageToken=None).execute()
+        )  # (should) get the first event in the specified calendar
 
         eventsNumber = 0
         if not events:
-            print('Error retriving events (none returned!)')
+            print("Error retriving events (none returned!)")
         else:
-            while (True):
+            while True:
                 for event in events["items"]:
                     try:
                         tmpAttività = event["description"].split(" in ")[0]
-                        tmpClasse = event["description"].split(" in ")[1].split(" di ")[0].split(" con ")[0]
+                        tmpClasse = (
+                            event["description"]
+                            .split(" in ")[1]
+                            .split(" di ")[0]
+                            .split(" con ")[0]
+                        )
                         tmpDocnote = event["description"].split(" con ")[1]
 
-                        tmpDataPieces = event["start"]["dateTime"].split("T")[0].split("-")
-                        tmpData = tmpDataPieces[2] + "/" + tmpDataPieces[1] + "/" + tmpDataPieces[0]
+                        tmpDataPieces = (
+                            event["start"]["dateTime"].split("T")[0].split("-")
+                        )
+                        tmpData = (
+                            tmpDataPieces[2]
+                            + "/"
+                            + tmpDataPieces[1]
+                            + "/"
+                            + tmpDataPieces[0]
+                        )
 
-                        tmpTimeList = event["start"]["dateTime"].split("T")[1].split(":")
+                        tmpTimeList = (
+                            event["start"]["dateTime"].split("T")[1].split(":")
+                        )
                         tmpTime = tmpTimeList[0] + ":" + tmpTimeList[1] + "-"
                         tmpTimeList = event["end"]["dateTime"].split("T")[1].split(":")
                         tmpTime += tmpTimeList[0] + ":" + tmpTimeList[1]
-                        tmpLocation = "" if "location" not in event else event["location"]
-                        gCalendar.append(Lesson(event["summary"], tmpData, tmpAttività, tmpDocnote, tmpLocation, tmpClasse, tmpTime, event["id"]))
+                        tmpLocation = (
+                            "" if "location" not in event else event["location"]
+                        )
+                        gCalendar.append(
+                            Lesson(
+                                event["summary"],
+                                tmpData,
+                                tmpAttività,
+                                tmpDocnote,
+                                tmpLocation,
+                                tmpClasse,
+                                tmpTime,
+                                event["id"],
+                            )
+                        )
                     except Exception as e:
-                        log.error(f"Error reading from google calendar on: {event}\nException: {e}")
+                        log.error(
+                            f"Error reading from google calendar on: {event}\nException: {e}"
+                        )
                         exit()
                 eventsNumber += len(events["items"])
 
                 # if len(events["items"]) == 0 or not events["nextPageToken"]:
-                if "nextPageToken" not in events or not events["nextPageToken"]:  # if there are no more events, stop iterating
+                if (
+                    "nextPageToken" not in events or not events["nextPageToken"]
+                ):  # if there are no more events, stop iterating
                     break
-                events = self.service.events().list(calendarId=id, pageToken=events["nextPageToken"]).execute()  # save the next events form gcalendar to parse them
+                events = (
+                    self.service.events()
+                    .list(calendarId=id, pageToken=events["nextPageToken"])
+                    .execute()
+                )  # save the next events form gcalendar to parse them
             log.info(f"{eventsNumber} events on google calendar found")
             return gCalendar
 
@@ -120,18 +161,30 @@ class GoogleCalendar:
             log.info("Starting the creation of new events")
             for less in calendar:
                 eventBody = {
-                    'id': hash(less),
-                    'summary': less.getsubject(),
-                    'location': less.getlocation(),
-                    'description': less.getactivity() + " in " + less.getclasses() + " con " + less.getprof(),
-                    'start': {
-                        'dateTime': str(datetime.strptime(less.getStartDateTime(), "%d/%m/%Y-%H:%M").isoformat()),
-                        'timeZone': 'Europe/Rome',
+                    "id": hash(less),
+                    "summary": less.getsubject(),
+                    "location": less.getlocation(),
+                    "description": less.getactivity()
+                    + " in "
+                    + less.getclasses()
+                    + " con "
+                    + less.getprof(),
+                    "start": {
+                        "dateTime": str(
+                            datetime.strptime(
+                                less.getStartDateTime(), "%d/%m/%Y-%H:%M"
+                            ).isoformat()
+                        ),
+                        "timeZone": "Europe/Rome",
                     },
-                    'end': {
-                        'dateTime': str(datetime.strptime(less.getEndDateTime(), "%d/%m/%Y-%H:%M").isoformat()),
-                        'timeZone': 'Europe/Rome',
-                    }
+                    "end": {
+                        "dateTime": str(
+                            datetime.strptime(
+                                less.getEndDateTime(), "%d/%m/%Y-%H:%M"
+                            ).isoformat()
+                        ),
+                        "timeZone": "Europe/Rome",
+                    },
                 }
                 self.service.events().insert(calendarId=id, body=eventBody).execute()
             log.info("All events in newCalendars created")

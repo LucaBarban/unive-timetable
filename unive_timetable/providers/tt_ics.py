@@ -13,12 +13,23 @@ def saveToIcs(calendar, configParser):
 
     for lezione in calendar:
         event = Event()
-        event.add('summary', lezione.getsubject())
-        event.add('description', lezione.getactivity() + " in " + lezione.getclasses() + " di " + lezione.getday() + " con " + lezione.getprof())
-        event.add('dtstart', datetime.strptime(
-            lezione.getStartDateTime(), "%d/%m/%Y-%H:%M"))
-        event.add('dtend', datetime.strptime(
-            lezione.getEndDateTime(), "%d/%m/%Y-%H:%M"))
+        event.add("summary", lezione.getsubject())
+        event.add(
+            "description",
+            lezione.getactivity()
+            + " in "
+            + lezione.getclasses()
+            + " di "
+            + lezione.getday()
+            + " con "
+            + lezione.getprof(),
+        )
+        event.add(
+            "dtstart", datetime.strptime(lezione.getStartDateTime(), "%d/%m/%Y-%H:%M")
+        )
+        event.add(
+            "dtend", datetime.strptime(lezione.getEndDateTime(), "%d/%m/%Y-%H:%M")
+        )
 
         """
         organizer = vCalAddress("MAILTO:" + lezione.getdocnote() + "@email.domain")
@@ -28,10 +39,10 @@ def saveToIcs(calendar, configParser):
         event['organizer'] = organizer
         """
 
-        event['location'] = vText(lezione.getlocation())
+        event["location"] = vText(lezione.getlocation())
 
-        event['uid'] = hash(lezione)
-        event.add('priority', 5)
+        event["uid"] = hash(lezione)
+        event.add("priority", 5)
 
         cal.add_component(event)
 
@@ -49,6 +60,6 @@ def saveToIcs(calendar, configParser):
         log.debug("Folder created")
 
     log.info("Saving ics file to disk...")
-    f = open(os.path.join(directory, configParser["ics"]["filename"]), 'wb')
+    f = open(os.path.join(directory, configParser["ics"]["filename"]), "wb")
     f.write(cal.to_ical())
     f.close()

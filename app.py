@@ -16,7 +16,8 @@ def main():
 
     # url to scrape from
     ignore = config["general"]["ignore"]
-    updatePastEvents = config['general']['updatePastEvents']
+    ignore = config["general"]["ignore"]
+    updatePastEvents = config["general"]["updatePastEvents"]
 
     scrapedEvents = []
     for year in config["general"]["years"]:
@@ -27,7 +28,9 @@ def main():
     if config["general"]["provider"] == "gcal":
         CREDENTIALS_FILE = config["gcal"]["credentials"]
         googleC = GoogleCalendar(CREDENTIALS_FILE, config)
-        deleteCals, newCals = compareEvents(scrapedEvents, googleC.getFromGoogleCalendar(), updatePastEvents)
+        deleteCals, newCals = compareEvents(
+            scrapedEvents, googleC.getFromGoogleCalendar(), updatePastEvents
+        )
         log.info(f"Found {len(newCals)} new Events and {len(deleteCals)} to delete")
         googleC.deleteEvents(deleteCals)
         googleC.createEvents(newCals)
@@ -35,10 +38,13 @@ def main():
     if config["general"]["provider"] == "caldav":
         caldav = CalDAV(config)
         caldavEvents = caldav.getEvents()
-        deleteCals, newCals = compareEvents(scrapedEvents, caldavEvents, updatePastEvents)
+        deleteCals, newCals = compareEvents(
+            scrapedEvents, caldavEvents, updatePastEvents
+        )
         log.info(f"Found {len(newCals)} new Events and {len(deleteCals)} to delete")
         caldav.deleteEvents(deleteCals)
         caldav.createEvents(newCals)
+
 
 if __name__ == "__main__":
     main()

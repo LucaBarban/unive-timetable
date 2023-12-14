@@ -18,8 +18,10 @@ class CalDAV:
         provider = config["caldav"]["provider"]
         password = keyring.get_password("unive_timetable_" + provider, username)
         if password is None:
-            pswd = getpass.getpass('Enter your password for your caldav server: ')
-            password = keyring.set_password("unive_timetable_" + provider, username, pswd)
+            pswd = getpass.getpass("Enter your password for your caldav server: ")
+            password = keyring.set_password(
+                "unive_timetable_" + provider, username, pswd
+            )
             password = keyring.get_password("unive_timetable_" + provider, username)
 
         with DAVClient(url=url, username=username, password=password) as client:
@@ -38,7 +40,6 @@ class CalDAV:
 
         self.all_events = self.calendar.events()
 
-
     def getEvents(self) -> list[Lesson]:
         events = []
         for event in self.all_events:
@@ -51,11 +52,26 @@ class CalDAV:
             tprofessor = event.description.value.split(" con ")[1]
             # Represent date in localtimezone format sinze by default CalDAV will
             # output a datetime object in UTC timezone
-            _dtstart = event.dtstart.value.replace(tzinfo=timezone.utc).astimezone(tz=None)
+            _dtstart = event.dtstart.value.replace(tzinfo=timezone.utc).astimezone(
+                tz=None
+            )
             _dtend = event.dtend.value.replace(tzinfo=timezone.utc).astimezone(tz=None)
             tdate = str(_dtstart.strftime("%d/%m/%Y"))
-            ttime = str(_dtstart.strftime("%H:%M")) + "-" + str(_dtend.strftime("%H:%M"))
-            events.append(Lesson(tsummary, tdate, tactivity, tprofessor, tlocation, tclass, ttime, tuid,))
+            ttime = (
+                str(_dtstart.strftime("%H:%M")) + "-" + str(_dtend.strftime("%H:%M"))
+            )
+            events.append(
+                Lesson(
+                    tsummary,
+                    tdate,
+                    tactivity,
+                    tprofessor,
+                    tlocation,
+                    tclass,
+                    ttime,
+                    tuid,
+                )
+            )
 
         return events
 
@@ -66,10 +82,13 @@ class CalDAV:
                 dtstart=datetime.strptime(event.getStartDateTime(), "%d/%m/%Y-%H:%M"),
                 dtend=datetime.strptime(event.getEndDateTime(), "%d/%m/%Y-%H:%M"),
                 location=event.getlocation(),
-                description=event.getactivity() + " in " + event.getclasses() + " con " + event.getprof(),
+                description=event.getactivity()
+                + " in "
+                + event.getclasses()
+                + " con "
+                + event.getprof(),
             )
         log.info("All events in newCalendars created")
-
 
     def deleteEvents(self, events):
         if len(events) > 0:
