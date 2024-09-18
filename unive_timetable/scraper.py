@@ -104,14 +104,15 @@ def scrapeLessons(url, ignore) -> list[Lesson]:
             and timetablebtr[-1].getStartDateTime() == lesson.getStartDateTime()
             and timetablebtr[-1].getprof() == lesson.getprof()
         ):
-            timetablebtr[-1].setDoubleClass()
-            tmpSubject = timetablebtr[-1].getsubject().split(" ")
-            if len(tmpSubject) > 2 and tmpSubject[-2] in ["Cognomi", "Classe"]:
-                tmpNewSubject = " ".join(tmpSubject[:-1])
-                tmpNewSubject += (
-                    " " + tmpSubject[-1] + "," + lesson.getsubject().split(" ")[-1]
-                )
-                timetablebtr[-1].setSubject(tmpNewSubject)
+            if timetablebtr[-1].getclasses() in ["Aula 1", "Aula 2"] and lesson.getclasses() in ["Aula 1", "Aula 2"]:
+                timetablebtr[-1].setDoubleClass()
+                tmpSubject = timetablebtr[-1].getsubject().split(" ")
+                if len(tmpSubject) > 2 and tmpSubject[-2] in ["Cognomi", "Classe"]:
+                    tmpNewSubject = " ".join(tmpSubject[:-1])
+                    tmpNewSubject += (
+                        " " + tmpSubject[-1] + "," + lesson.getsubject().split(" ")[-1]
+                    )
+                    timetablebtr[-1].setSubject(tmpNewSubject)
         else:
             timetablebtr.append(lesson)
     return timetablebtr
