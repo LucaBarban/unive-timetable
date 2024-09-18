@@ -12,16 +12,30 @@ from unive_timetable.lesson import Lesson
 class CalDAV:
     def __init__(self, configParser):
         config = configParser
-        username = config["caldav"]["username"]
         calendar_name = config["general"]["calendar"]
         url = config["caldav"]["url"]
         provider = config["caldav"]["provider"]
-        password = keyring.get_password("unive_timetable_" + provider, username)
+
+        username = config.get("caldav", {}).get("username")
+        if username is None:
+            username = keyring.get_password(
+                "unive_timetable_username_" + provider, "username"
+            )
+        if username is None:
+            username = input("Enter your username for your caldav server: ")
+            keyring.set_password(
+                "unive_timetable_username_" + provider, "username", username
+            )
+            username = keyring.get_password(
+                "unive_timetable_username_" + provider, "username"
+            )
+
+        password = keyring.get_password(
+            "unive_timetable_password_" + provider, username
+        )
         if password is None:
             pswd = getpass.getpass("Enter your password for your caldav server: ")
-            password = keyring.set_password(
-                "unive_timetable_" + provider, username, pswd
-            )
+            keyring.set_password("unive_timetable_password_" + provider, username, pswd)
             password = keyring.get_password("unive_timetable_" + provider, username)
 
         with DAVClient(url=url, username=username, password=password) as client:
