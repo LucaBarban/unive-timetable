@@ -25,6 +25,8 @@ def scrapeLessons(url, ignore) -> list[Lesson]:
     )  # initialize beautifulsoup
     periods = soup.select_one("div.tab-content")  # get the useful contents
 
+    assert periods is not None, "Probably the site is down"
+
     nperiods = 0
     for period in periods:
         if period != "\n":  # filter out useless stuff
