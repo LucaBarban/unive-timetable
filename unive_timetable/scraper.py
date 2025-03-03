@@ -64,12 +64,10 @@ def venevtToLesson(vevent) -> Lesson:
     
     # find location
     location = vevent.get("LOCATION")
-    match = re.search("^(Aula|Laboratorio) \\w+", location)
+    match = re.search("^(.*?)(?=\s+Campus)", location)
     if match is None:
         raise Exception("Couldn't parse the location of the room")
-    classes = match.group()
-    # include trailing space in "Aula Laboratorio \w+ blah blah"
-    #                                                ^
+    classes = match.group(1)
     location = location[len(classes) + 1 :]
     
     # match everything inside []
