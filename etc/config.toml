@@ -5,9 +5,10 @@ provider =
 calendar =
 # Accademic years: ["1"], ["2", "3"], etc..
 years =
-# "TSI": Tecnologie e Scienze dell'Informazione
-# "DS": Data Science
-# "ECS": European Computer Science
+# course name or corresponding literal
+# "TECNOLOGIE E SCIENZE DELL'INFORMAZIONE" or "TSI"
+# "DATA SCIENCE" or "DS"
+# "EUROPEAN COMPUTER SCIENCE" or "ECS"
 curriculum =
 # Array of lesson to ignore when uploding (with support for regex)
 ignore = [ 'materia1', 'materia2.*' ]
