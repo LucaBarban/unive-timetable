@@ -77,7 +77,7 @@ def venevtToLesson(vevent) -> Lesson:
     location = location[len(classes) + 1 :]
 
     # match everything inside []
-    match = re.search(r"\\[[^\\]]*\\]", subject)
+    match = re.search(r"\[[^\]]*\]", subject)
     if match is None:
         raise Exception("Couldn't parse the course id")
     course_id = match.group()
