@@ -70,14 +70,14 @@ def venevtToLesson(vevent) -> Lesson:
 
     # find location
     location = vevent.get("LOCATION")
-    match = re.search("^(.*?)(?=\s+Campus)", location)
+    match = re.search(r"^(.*?)(?=\s+Campus)", location)
     if match is None:
         raise Exception("Couldn't parse the location of the room")
     classes = match.group(1)
     location = location[len(classes) + 1 :]
 
     # match everything inside []
-    match = re.search("\\[[^\\]]*\\]", subject)
+    match = re.search(r"\\[[^\\]]*\\]", subject)
     if match is None:
         raise Exception("Couldn't parse the course id")
     course_id = match.group()
