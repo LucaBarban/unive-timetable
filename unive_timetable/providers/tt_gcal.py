@@ -74,7 +74,7 @@ class GoogleCalendar:
 
         eventsNumber = 0
         if not events:
-            print("Error retriving events (none returned!)")
+            raise Exception("Error retriving events (none returned!)")
         else:
             while True:
                 for event in events["items"]:
