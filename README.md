@@ -15,11 +15,10 @@ git clone https://github.com/LucaBarban/unive-timetable.git
 ## Running the script
 
 ```bash
-./run.sh
+python3 app.py
 ```
 
 ## Configuration
 
-The script createas automaticly an **empty** config when you first run
-it. Before you run the script again you should populate the config with your
-info.
+The script createas automaticly an **empty** config when you first run it.
+Before you run the script again you should populate the config with your info.
