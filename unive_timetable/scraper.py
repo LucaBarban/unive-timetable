@@ -18,7 +18,7 @@ def courseNameToLitteral(curriculum: str, year: int) -> str:
         requests.get(url).content, "html.parser"
     )  # initialize beautifulsoup
     
-    buttons = soup.find_all('a', class_='btn btn-danger') # get all the ics download buttons
+    buttons = soup.find_all('a', class_='btn btn-danger') # get all the "ics download" buttons
     
     target_text = f"Genera calendario ICS ({curriculum})"
     ics_url = ""
@@ -95,15 +95,17 @@ def venevtToLesson(vevent) -> Lesson:
 def scrapeLessons(curriculum: str, year: int, ignore: List[str]) -> list[Lesson]:
     lessons: List[Lesson] = []
 
-    if len(curriculum) > 5:
+    if len(curriculum) > 5: # heuristic based on nothing
         curriculum = courseNameToLitteral(curriculum, year)
 
     ics_url = f"https://www.unive.it/data/ajax/Didattica/generaics?cache=-1&cds=CT3&anno={year}&curriculum={curriculum}"
     response = requests.get(ics_url) # download the ICS file
+
     if response.status_code == 200:
         calendar = Calendar.from_ical(response.text) # parse the downloaded calendar
 
-        for event in calendar.walk('vevent'): # parse each lesson
+        # convert each evento into the corresponding lesson
+        for event in calendar.walk('vevent'): 
             lesson = venevtToLesson(event)
             if lesson.getsubject() not in ignore:
                 lessons.append(lesson)
