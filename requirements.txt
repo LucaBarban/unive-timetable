@@ -7,3 +7,7 @@ icalendar
 keyring
 requests
 toml
+types-requests
+types-beautifulsoup4 
+types-icalendar
+types-toml
