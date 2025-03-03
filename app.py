@@ -2,7 +2,7 @@ import logging as log
 
 from unive_timetable.providers.tt_caldav import CalDAV
 from unive_timetable.providers.tt_gcal import GoogleCalendar
-from unive_timetable.scraper import scrapeLessons
+from unive_timetable.downloader import getLessons
 from unive_timetable.utils import Config, compareEvents
 
 
@@ -16,13 +16,12 @@ def main():
 
     # url to scrape from
     ignore = config["general"]["ignore"]
-    ignore = config["general"]["ignore"]
+    curriculum = config["general"]["curriculum"]
     updatePastEvents = config["general"]["updatePastEvents"]
 
     scrapedEvents = []
     for year in config["general"]["years"]:
-        url = "https://www.unive.it/data/it/1592/orario-lezioni/" + year
-        scrapedEvents = scrapedEvents + scrapeLessons(url, ignore)
+        scrapedEvents = scrapedEvents + getLessons(curriculum, year, ignore)
     log.info(f"{len(scrapedEvents)} events found")
 
     if config["general"]["provider"] == "gcal":

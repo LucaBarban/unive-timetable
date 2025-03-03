@@ -1,3 +1,4 @@
+import unive_timetable.downloader
 import unive_timetable.scraper
 import unive_timetable.utils
 from unive_timetable.lesson import Lesson

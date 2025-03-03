@@ -4,7 +4,11 @@ provider =
 # calendar where upload the time table
 calendar =
 # Accademic years: ["1"], ["2", "3"], etc..
-years = 
+years =
+# "TSI": Tecnologie e Scienze dell'Informazione
+# "DS": Data Science
+# "ECS": European Computer Science
+curriculum =
 # Array of lesson to ignore when uploding (with support for regex)
 ignore = [ 'materia1', 'materia2.*' ]
 # true if you want to update events that already happened, false otherwise
