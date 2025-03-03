@@ -12,6 +12,13 @@ from unive_timetable.lesson import Lesson
 # then lessons that are held in different rooms at the same time will be merged
 
 
+def shouldIgnore(subject, ignore):
+    for x in ignore:
+        if re.match(x, subject):
+            return True
+    return False
+
+
 def courseNameToLitteral(curriculum: str, year: int) -> str:
     url = "https://www.unive.it/data/it/1593/insegnamenti-e-orari/" + str(year)
 
@@ -112,8 +119,9 @@ def scrapeLessons(curriculum: str, year: int, ignore: List[str]) -> list[Lesson]
         # convert each evento into the corresponding lesson
         for event in calendar.walk("vevent"):
             lesson = venevtToLesson(event)
-            if lesson.getsubject() not in ignore:
-                lessons.append(lesson)
+            if shouldIgnore(lesson.getsubject(), ignore):
+                continue
+            lessons.append(lesson)
     else:
         raise Exception(
             f"Failed to download ICS from {ics_url} (satus: {response.status_code})"

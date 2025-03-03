@@ -131,4 +131,3 @@ dmypy.json
 # Other stuff like config files/tokens
 token.pickle
 *.ics
-config.toml
