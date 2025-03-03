@@ -2,7 +2,7 @@ import logging as log
 
 from unive_timetable.providers.tt_caldav import CalDAV
 from unive_timetable.providers.tt_gcal import GoogleCalendar
-from unive_timetable.downloader import getLessons
+from unive_timetable.scraper import scrapeLessons
 from unive_timetable.utils import Config, compareEvents
 
 
@@ -21,7 +21,7 @@ def main():
 
     scrapedEvents = []
     for year in config["general"]["years"]:
-        scrapedEvents = scrapedEvents + getLessons(curriculum, year, ignore)
+        scrapedEvents = scrapedEvents + scrapeLessons(curriculum, year, ignore)
     log.info(f"{len(scrapedEvents)} events found")
 
     if config["general"]["provider"] == "gcal":

@@ -1,120 +1,139 @@
 from datetime import datetime
+from typing import List
 import xml.etree.ElementTree as ET
-import requests
+import requests 
 import re
 from bs4 import BeautifulSoup
+from icalendar import Calendar
 
 from unive_timetable.lesson import Lesson
 
 # request the page from the url and scrapre the content via beautifulsoup4
 # then lessons that are held in different rooms at the same time will be merged
 
-
-def shouldIgnore(subject, ignore):
-    for x in ignore:
-        if re.match(x, subject):
-            return True
-    return False
-
-
-def scrapeLessons(url, ignore) -> list[Lesson]:
-    timetable = []
+def courseNameToLitteral(curriculum: str, year: int) -> str:
+    url = "https://www.unive.it/data/it/1593/insegnamenti-e-orari/" + str(year)
 
     soup = BeautifulSoup(
         requests.get(url).content, "html.parser"
     )  # initialize beautifulsoup
-    periods = soup.select_one("div.tab-content")  # get the useful contents
+    
+    buttons = soup.find_all('a', class_='btn btn-danger') # get all the ics download buttons
+    
+    target_text = f"Genera calendario ICS ({curriculum})"
+    ics_url = ""
 
-    assert periods is not None, "Probably the site is down"
+    for button in buttons:
+        if button.text.strip() == target_text:
+            ics_url = button.get('href')  # extract the url of the ICS file
+            break
+    else:
+        raise Exception(f"No button \"{target_text}\" found at url")
+    
+    url_parameters = ics_url.split("?")[1].split("&") # extract the GET parameters
+    for param in url_parameters: # find the one for the curriculum
+        splitted = param.split("=")
+        if splitted[0] == "curriculum": 
+            return splitted[1]
 
-    nperiods = 0
-    for period in periods:
-        if period != "\n":  # filter out useless stuff
-            nperiods += 1
+    raise Exception(f"Couldn't get the curriculum's litteral from the button's url ({ics_url})")
 
-    for periodnumber in range(1, nperiods + 1):
-        period = soup.find(
-            id=f"collapsep-{periodnumber}"
-        ).findChild()  # get the card body with all the events
-        dontadd = False
-        for element in period:
-            if element.name == "h5":  # if the tag is for a subject
-                subject = (
-                    str(element.findChild().contents)
-                    .split("\\n\\t")[1]
-                    .split('"')[0]
-                    .split(", <br/>")[0]
-                    .replace("'", "")
-                    .strip()
-                )  # get the actual title from the link of the subject, split it from the venice/cfu part and clean it up from the formatting
-                dontadd = shouldIgnore(
-                    subject, ignore
-                )  # set dontadd to True if the subject has to be ignored, False otherwise
-            elif (
-                element.name == "div" and not dontadd
-            ):  # if the tag is for a part of the timetable and it can be added
-                collapseid = (
-                    "collapse" + str(element.get("id"))[6:]
-                )  # go from giorno-1-1-1 to 1-1-1 to collapse-1-1-1 (the id of the div with the actual entrys from the lessons)
-                daydata = element.find_all("div", {"class:", "row"})[0].find_all(
-                    "div"
-                )  # get the collapsable row with the day, time, place info
-                tmphour = "".join(
-                    daydata[1].text.split(" ")[1:]
-                )  # remove the day from the time part (eg. "Martedì 8:00 - 9:00" becomes "8:00-9:00")
-                tmproom = daydata[
-                    3
-                ].text  # the room where the lessons will be held (eg. Aula 1)
-                tmplocation = daydata[4].text  # the building where the romm is
-                for entry in (
-                    soup.find(id=collapseid).find_all("tbody")[0].find_all("tr")
-                ):
-                    singlelessondata = entry.find_all(
-                        "td"
-                    )  # get the data from every table row
-                    tmpdate = singlelessondata[0].text
-                    tmpactivity = singlelessondata[1].text
-                    tmpprof = "".join(
-                        singlelessondata[2].text.split(" ")[0:1]
-                    )  # get the name of the professor (2 words only, the rest is ignored)
-                    timetable.append(
-                        Lesson(
-                            subject,
-                            tmpdate,
-                            tmpactivity,
-                            tmpprof,
-                            tmplocation,
-                            tmproom,
-                            tmphour,
-                            0,
-                        )
-                    )  # add the newly "calculated" class
-            else:  # if it's something else (mainly empty stuff)
-                continue
+def venevtToLesson(vevent) -> Lesson:
+    summary = vevent.get("SUMMARY")
 
-    timetable.sort(
+    subject = summary.split(" - ")
+    # there is a " - Mod" lesson
+    if len(subject) == 3:
+        subject = f"{subject[0]} - {subject[1]}"
+    else:
+        subject = subject[0]
+
+    # format the start date as 'day/month/year'
+    date = vevent.get("DTSTART").dt.strftime("%d/%m/%Y")
+    
+    # find the activity
+    activity = summary[len(subject) + 3 :].split(", ")[1]
+
+    # fin the professor's surname and name
+    prof = summary[len(subject) + 3 :].split(", ")[0].title()
+    
+    # find time
+    start_time = vevent.get("DTSTART").dt.strftime("%H:%M")
+    end_time = vevent.get("DTEND").dt.strftime("%H:%M")
+    time = f"{start_time}-{end_time}"
+    
+    # find location
+    location = vevent.get("LOCATION")
+    match = re.search("^(Aula|Laboratorio) \\w+", location)
+    if match is None:
+        raise Exception("Couldn't parse the location of the room")
+    classes = match.group()
+    # include trailing space in "Aula Laboratorio \w+ blah blah"
+    #                                                ^
+    location = location[len(classes) + 1 :]
+    
+    # match everything inside []
+    match = re.search("\\[[^\\]]*\\]", subject)
+    if match is None:
+        raise Exception("Couldn't parse the course id")
+    course_id = match.group()
+    
+    # take only the subject part without the id (the minus - 1 is for the trailing space)
+    subject = subject[: len(subject) - len(course_id) - 1]
+
+    return Lesson(
+        subject,
+        date,
+        activity,
+        prof,
+        location,
+        classes,
+        time,
+        0,
+    )
+
+def scrapeLessons(curriculum: str, year: int, ignore: List[str]) -> list[Lesson]:
+    lessons: List[Lesson] = []
+
+    if len(curriculum) > 5:
+        curriculum = courseNameToLitteral(curriculum, year)
+
+    ics_url = f"https://www.unive.it/data/ajax/Didattica/generaics?cache=-1&cds=CT3&anno={year}&curriculum={curriculum}"
+    response = requests.get(ics_url) # download the ICS file
+    if response.status_code == 200:
+        calendar = Calendar.from_ical(response.text) # parse the downloaded calendar
+
+        for event in calendar.walk('vevent'): # parse each lesson
+            lesson = venevtToLesson(event)
+            if lesson.getsubject() not in ignore:
+                lessons.append(lesson)
+    else:
+        raise Exception(f"Failed to download ICS from {ics_url} (satus: {response.status_code})")
+
+
+    lessons.sort(
         key=lambda Lesson: datetime.strptime(
             Lesson.getStartDateTime(), "%d/%m/%Y-%H:%M"
         )
     )  # sort the lessons (useful for the next step)
 
     # read all lessons and "merge" the ones that are held in Aula 1 and Aula 2 at the same time, name included (eg. Lesson Classe 1 + Lesson Classe 2 = Lesson Classe 1,2)
-    timetablebtr = []
-    for lesson in timetable:
+    lessonsbtr: List[Lesson] = []
+    for lesson in lessons:
         if (
-            len(timetablebtr) != 0
-            and timetablebtr[-1].getStartDateTime() == lesson.getStartDateTime()
-            and timetablebtr[-1].getprof() == lesson.getprof()
+            len(lessonsbtr) != 0
+            and lessonsbtr[-1].getStartDateTime() == lesson.getStartDateTime()
+            and lessonsbtr[-1].getprof() == lesson.getprof()
         ):
-            if timetablebtr[-1].getclasses() in ["Aula 1", "Aula 2"] and lesson.getclasses() in ["Aula 1", "Aula 2"]:
-                timetablebtr[-1].setDoubleClass()
-                tmpSubject = timetablebtr[-1].getsubject().split(" ")
+            if lessonsbtr[-1].getclasses() in ["Aula 1", "Aula 2"] and lesson.getclasses() in ["Aula 1", "Aula 2"]:
+                lessonsbtr[-1].setDoubleClass()
+                tmpSubject = lessonsbtr[-1].getsubject().split(" ")
                 if len(tmpSubject) > 2 and tmpSubject[-2] in ["Cognomi", "Classe"]:
                     tmpNewSubject = " ".join(tmpSubject[:-1])
                     tmpNewSubject += (
                         " " + tmpSubject[-1] + "," + lesson.getsubject().split(" ")[-1]
                     )
-                    timetablebtr[-1].setSubject(tmpNewSubject)
+                    lessonsbtr[-1].setSubject(tmpNewSubject)
         else:
-            timetablebtr.append(lesson)
-    return timetablebtr
+            lessonsbtr.append(lesson)
+    return lessonsbtr
