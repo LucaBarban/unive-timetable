@@ -1,5 +1,5 @@
-caldav
 beautifulsoup4
+caldav
 google-api-core
 google-api-python-client
 google-auth-oauthlib
@@ -7,7 +7,8 @@ icalendar
 keyring
 requests
 toml
-types-requests
 types-beautifulsoup4 
+types-caldav
 types-icalendar
+types-requests
 types-toml

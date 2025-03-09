@@ -1,13 +1,14 @@
 import logging as log
+from typing import List
 
 import unive_timetable.config as cfg
+from unive_timetable.lesson import Lesson
 from unive_timetable.providers.tt_caldav import CalDAV
 from unive_timetable.providers.tt_gcal import GoogleCalendar
 from unive_timetable.scraper import scrapeLessons
 from unive_timetable.utils import compareEvents
 
-
-def main():
+if __name__ == "__main__":
     log.basicConfig(
         level=log.INFO,
         format="%(asctime)s %(levelname)s %(message)s",
@@ -20,7 +21,7 @@ def main():
     curriculum = config["general"]["curriculum"]
     updatePastEvents = config["general"]["updatePastEvents"]
 
-    scrapedEvents = []
+    scrapedEvents: List[Lesson] = []
     for year in config["general"]["years"]:
         scrapedEvents = scrapedEvents + scrapeLessons(curriculum, year, ignore)
     log.info(f"{len(scrapedEvents)} events found")
@@ -44,7 +45,3 @@ def main():
         log.info(f"Found {len(newCals)} new Events and {len(deleteCals)} to delete")
         caldav.deleteEvents(deleteCals)
         caldav.createEvents(newCals)
-
-
-if __name__ == "__main__":
-    main()

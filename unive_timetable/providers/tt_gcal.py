@@ -15,9 +15,6 @@ from unive_timetable.lesson import Lesson
 
 
 class GoogleCalendar:
-    service = None
-    config = None
-
     def __init__(self, CREDENTIALS_FILE, configParser):
         # If modifying these scopes, delete the file token.pickle.
         SCOPES = ["https://www.googleapis.com/auth/calendar"]
