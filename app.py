@@ -1,9 +1,10 @@
 import logging as log
 
+import unive_timetable.config as cfg
 from unive_timetable.providers.tt_caldav import CalDAV
 from unive_timetable.providers.tt_gcal import GoogleCalendar
 from unive_timetable.scraper import scrapeLessons
-from unive_timetable.utils import Config, compareEvents
+from unive_timetable.utils import compareEvents
 
 
 def main():
@@ -12,7 +13,7 @@ def main():
         format="%(asctime)s %(levelname)s %(message)s",
         # filename="trace.log",
     )
-    config = Config().getData()
+    config = cfg.get()
 
     # url to scrape from
     ignore = config["general"]["ignore"]

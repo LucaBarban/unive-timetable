@@ -8,7 +8,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
 from unive_timetable.lesson import Lesson
-from unive_timetable.utils import Config
 
 # the implementaton is some sort of a remix from (conmments included :P):
 # https://karenapp.io/articles/how-to-automate-google-calendar-with-python-using-the-calendar-api/
