@@ -5,13 +5,15 @@ from datetime import datetime, timezone
 
 import keyring
 from caldav import DAVClient, error
+from types import MappingProxyType
+from typing import List, Any
 
 from unive_timetable.lesson import Lesson
+from unive_timetable.provider import Provider
 
 
-class CalDAV:
-    def __init__(self, configParser):
-        config = configParser
+class CalDAV(Provider):
+    def __init__(self, config: MappingProxyType[str, Any]):
         calendar_name = config["general"]["calendar"]
         url = config["caldav"]["url"]
         provider = config["caldav"]["provider"]
@@ -54,7 +56,7 @@ class CalDAV:
 
         self.all_events = self.calendar.events()
 
-    def getEvents(self) -> list[Lesson]:
+    def getEvents(self) -> List[Lesson]:
         events = []
         for event in self.all_events:
             tuid = event
@@ -89,7 +91,7 @@ class CalDAV:
 
         return events
 
-    def createEvents(self, events):
+    def createEvents(self, events: List[Lesson]):
         for event in events:
             self.calendar.save_event(
                 summary=event.getsubject(),
@@ -104,7 +106,7 @@ class CalDAV:
             )
         log.info("All events in newCalendars created")
 
-    def deleteEvents(self, events):
+    def deleteEvents(self, events: List[Lesson]):
         if len(events) > 0:
             for event in events:
                 event.getUID().delete()

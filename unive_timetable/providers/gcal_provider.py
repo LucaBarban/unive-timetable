@@ -7,19 +7,23 @@ from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
+from typing import List, Any
 from unive_timetable.lesson import Lesson
+from unive_timetable.provider import Provider
+from types import MappingProxyType
 
 # the implementaton is some sort of a remix from (conmments included :P):
 # https://karenapp.io/articles/how-to-automate-google-calendar-with-python-using-the-calendar-api/
 # https://developers.google.com/calendar/api
 
 
-class GoogleCalendar:
-    def __init__(self, CREDENTIALS_FILE, configParser):
+class GoogleCalendar(Provider):
+    def __init__(self, config: MappingProxyType[str, Any]):
         # If modifying these scopes, delete the file token.pickle.
         SCOPES = ["https://www.googleapis.com/auth/calendar"]
+        CREDENTIALS_FILE = config["gcal"]["credentials"]
         creds = None
-        self.config = configParser
+        self.config = config
 
         # The file token.pickle stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
@@ -59,7 +63,7 @@ class GoogleCalendar:
         print("The given calendar name hasn't been found! ({s})".format(s=calendarName))
         exit()
 
-    def getFromGoogleCalendar(self) -> list[Lesson]:
+    def getEvents(self) -> List[Lesson]:
         gCalendar = []
         id = self.getCalendarId(
             self.config["general"]["calendar"]

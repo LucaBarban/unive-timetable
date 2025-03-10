@@ -3,8 +3,9 @@ from typing import List
 
 import unive_timetable.config as cfg
 from unive_timetable.lesson import Lesson
-from unive_timetable.providers.tt_caldav import CalDAV
-from unive_timetable.providers.tt_gcal import GoogleCalendar
+from unive_timetable.provider import Provider
+from unive_timetable.providers.caldav_provider import CalDAV
+from unive_timetable.providers.gcal_provider import GoogleCalendar
 from unive_timetable.scraper import scrapeLessons
 from unive_timetable.utils import compareEvents
 
@@ -26,22 +27,19 @@ if __name__ == "__main__":
         scrapedEvents = scrapedEvents + scrapeLessons(curriculum, year, ignore)
     log.info(f"{len(scrapedEvents)} events found")
 
-    if config["general"]["provider"] == "gcal":
-        CREDENTIALS_FILE = config["gcal"]["credentials"]
-        googleC = GoogleCalendar(CREDENTIALS_FILE, config)
-        deleteCals, newCals = compareEvents(
-            scrapedEvents, googleC.getFromGoogleCalendar(), updatePastEvents
-        )
-        log.info(f"Found {len(newCals)} new Events and {len(deleteCals)} to delete")
-        googleC.deleteEvents(deleteCals)
-        googleC.createEvents(newCals)
+    provider: Provider
+    match config["general"]["provider"]:
+        case "gcal":
+            provider = GoogleCalendar(config)
+        case "caldav":
+            provider = CalDAV(config)
+        case _:
+            raise ValueError(f"No such provider: {config["general"]["provider"]}")
 
-    if config["general"]["provider"] == "caldav":
-        caldav = CalDAV(config)
-        caldavEvents = caldav.getEvents()
-        deleteCals, newCals = compareEvents(
-            scrapedEvents, caldavEvents, updatePastEvents
-        )
-        log.info(f"Found {len(newCals)} new Events and {len(deleteCals)} to delete")
-        caldav.deleteEvents(deleteCals)
-        caldav.createEvents(newCals)
+    deleteCals, newCals = compareEvents(
+        scrapedEvents, provider.getEvents(), updatePastEvents
+    )
+
+    log.info(f"Found {len(newCals)} new Events and {len(deleteCals)} to delete")
+    provider.deleteEvents(deleteCals)
+    provider.createEvents(newCals)
