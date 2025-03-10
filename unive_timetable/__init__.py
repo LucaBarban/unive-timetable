@@ -1,7 +1,0 @@
-import unive_timetable.scraper
-import unive_timetable.provider
-import unive_timetable.utils
-import unive_timetable.config
-from unive_timetable.lesson import Lesson
-from unive_timetable.providers.caldav_provider import CalDAV
-from unive_timetable.providers.gcal_provider import GoogleCalendar
