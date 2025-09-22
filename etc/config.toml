@@ -14,6 +14,10 @@ curriculum =
 ignore = [ 'materia1', 'materia2.*' ]
 # true if you want to update events that already happened, false otherwise
 updatePastEvents = false
+# Course code, it can be found between square brackets here -> https://www.unive.it/data/8321/
+# eg. for "Informatica" it would be "CTR3"
+courseCode = 
+
 
 [gcal]
 # /path/to/token

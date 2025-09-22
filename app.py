@@ -19,12 +19,13 @@ if __name__ == "__main__":
 
     # url to scrape from
     ignore = config["general"]["ignore"]
+    courseCode = config["general"]["courseCode"]
     curriculum = config["general"]["curriculum"]
     updatePastEvents = config["general"]["updatePastEvents"]
 
     scrapedEvents: List[Lesson] = []
     for year in config["general"]["years"]:
-        scrapedEvents = scrapedEvents + scrapeLessons(curriculum, year, ignore)
+        scrapedEvents = scrapedEvents + scrapeLessons(courseCode, curriculum, year, ignore)
     log.info(f"{len(scrapedEvents)} events found")
 
     provider: Provider

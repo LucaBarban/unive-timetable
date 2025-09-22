@@ -19,8 +19,34 @@ def shouldIgnore(subject, ignore):
     return False
 
 
-def courseNameToLitteral(curriculum: str, year: int) -> str:
-    url = "https://www.unive.it/data/it/1593/insegnamenti-e-orari/" + str(year)
+def courseCodeToTimetablePage(courseCode: str) -> str:
+    urlCourse = f"https://www.unive.it/cdl/{courseCode}"  # main course's page
+
+    soup = BeautifulSoup(
+        requests.get(urlCourse).content, "html.parser"
+    )  # initialize beautifulsoup
+
+    link = soup.find_all(
+        "a",
+        class_="list-group-item list-group-item-action",
+        string=lambda text: text and "orari" in text,
+    )  # get the button that go to the timetable page
+
+    if len(link) != 1:
+        raise Exception(
+            f"Didn't find the expected number of 'orari' links at {urlCourse} ({len(link)} found)"
+        )
+
+    urlRedirect = (
+        "https://www.unive.it" + link[0]["href"]
+    )  # url that redirects to the timetable page
+    urlData = requests.head(urlRedirect, allow_redirects=True)
+
+    return urlData.url
+
+
+def courseNameToLitteral(courseCode: str, curriculum: str, year: int) -> str:
+    url = courseCodeToTimetablePage(courseCode) + "/" + str(year)
 
     soup = BeautifulSoup(
         requests.get(url).content, "html.parser"
@@ -38,7 +64,7 @@ def courseNameToLitteral(curriculum: str, year: int) -> str:
             ics_url = button.get("href")  # extract the url of the ICS file
             break
     else:
-        raise Exception(f'No button "{target_text}" found at url')
+        raise Exception(f'No button "{target_text}" found at url ({url})')
 
     url_parameters = ics_url.split("?")[1].split("&")  # extract the GET parameters
     for param in url_parameters:  # find the one for the curriculum
@@ -77,16 +103,20 @@ def venevtToLesson(vevent) -> Lesson:
 
     # find location
     location = vevent.get("LOCATION")
-    match = re.search(r"^(.*?)(?=\s+Campus)", location)
-    if match is None:
-        raise Exception("Couldn't parse the location of the room")
-    classes = match.group(1)
-    location = location[len(classes) + 1 :]
+    classes = ""
+    if location != "ALTRO Altro":
+        match = re.search(r"^(.*?)(?=\s+Campus)", location)
+        if match is None:
+            raise Exception(f"Couldn't parse the location of the room ({location})")
+        classes = match.group(1)
+        location = location[len(classes) + 1 :]
+    else:
+        location = ""
 
     # match everything inside []
     match = re.search(r"\[[^\]]*\]", subject)
     if match is None:
-        raise Exception("Couldn't parse the course id")
+        raise Exception(f"Couldn't parse the course id ({subject})")
     course_id = match.group()
 
     # take only the subject part without the id (the minus - 1 is for the trailing space)
@@ -104,13 +134,15 @@ def venevtToLesson(vevent) -> Lesson:
     )
 
 
-def scrapeLessons(curriculum: str, year: int, ignore: List[str]) -> list[Lesson]:
+def scrapeLessons(
+    courseCode: str, curriculum: str, year: int, ignore: List[str]
+) -> list[Lesson]:
     lessons: List[Lesson] = []
 
     if len(curriculum) > 5:  # heuristic based on nothing
-        curriculum = courseNameToLitteral(curriculum, year)
+        curriculum = courseNameToLitteral(courseCode, curriculum, year)
 
-    ics_url = f"https://www.unive.it/data/ajax/Didattica/generaics?cache=-1&cds=CT3&anno={year}&curriculum={curriculum}"
+    ics_url = f"https://www.unive.it/data/ajax/Didattica/generaics?cache=-1&cds={courseCode}&anno={year}&curriculum={curriculum}"
     response = requests.get(ics_url)  # download the ICS file
 
     if response.status_code == 200:

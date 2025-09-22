@@ -34,10 +34,10 @@ class Lesson:
         return self.prof
 
     def getlocation(self):
-        return self.location
+        return self.location if self.location else "Location non specificata"
 
     def getclasses(self):
-        return self.classes
+        return self.classes if self.classes else "classe sconosciuta"
 
     def gettime(self):
         return self.time
