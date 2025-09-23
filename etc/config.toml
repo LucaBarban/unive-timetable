@@ -5,10 +5,11 @@ provider =
 calendar =
 # Accademic years: ["1"], ["2", "3"], etc..
 years =
-# course name or corresponding literal
+# course name, corresponding literal or list of both (useful if a subject is reported in only one of them)
 # "TECNOLOGIE E SCIENZE DELL'INFORMAZIONE" or "TSI"
 # "DATA SCIENCE" or "DS"
 # "EUROPEAN COMPUTER SCIENCE" or "ECS"
+# ["TSI", "DS"]
 curriculum =
 # Array of lesson to ignore when uploding (with support for regex)
 ignore = [ 'materia1', 'materia2.*' ]

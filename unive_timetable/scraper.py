@@ -135,30 +135,40 @@ def venevtToLesson(vevent) -> Lesson:
 
 
 def scrapeLessons(
-    courseCode: str, curriculum: str, year: int, ignore: List[str]
+    courseCode: str, curriculumList: str | list[str], year: int, ignore: List[str]
 ) -> list[Lesson]:
     lessons: List[Lesson] = []
 
-    if len(curriculum) > 5:  # heuristic based on nothing
-        curriculum = courseNameToLitteral(courseCode, curriculum, year)
+    if curriculumList is str:
+        curriculumList = [curriculumList]
 
-    ics_url = f"https://www.unive.it/data/ajax/Didattica/generaics?cache=-1&cds={courseCode}&anno={year}&curriculum={curriculum}"
-    response = requests.get(ics_url)  # download the ICS file
+    for curriculum in curriculumList:
+        if len(curriculum) > 5:  # heuristic based on nothing
+            curriculum = courseNameToLitteral(courseCode, curriculum, year)
 
-    if response.status_code == 200:
-        calendar = Calendar.from_ical(response.text)  # parse the downloaded calendar
+        ics_url = f"https://www.unive.it/data/ajax/Didattica/generaics?cache=-1&cds={courseCode}&anno={year}&curriculum={curriculum}"
+        response = requests.get(ics_url)  # download the ICS file
 
-        # convert each evento into the corresponding lesson
-        for event in calendar.walk("vevent"):
-            lesson = venevtToLesson(event)
-            if shouldIgnore(lesson.getsubject(), ignore):
-                continue
-            lessons.append(lesson)
-    else:
-        raise Exception(
-            f"Failed to download ICS from {ics_url} (satus: {response.status_code})"
-        )
+        if response.status_code == 200:
+            calendar = Calendar.from_ical(
+                response.text
+            )  # parse the downloaded calendar
 
+            # convert each evento into the corresponding lesson
+            for event in calendar.walk("vevent"):
+                lesson = venevtToLesson(event)
+                if shouldIgnore(lesson.getsubject(), ignore):
+                    continue
+                lessons.append(lesson)
+        else:
+            raise Exception(
+                f"Failed to download ICS from {ics_url} (satus: {response.status_code})"
+            )
+
+    return cleanupLessons(lessons)
+
+
+def cleanupLessons(lessons: List[Lesson]):
     lessons.sort(
         key=lambda Lesson: datetime.strptime(
             Lesson.getStartDateTime(), "%d/%m/%Y-%H:%M"
