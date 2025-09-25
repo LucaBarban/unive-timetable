@@ -139,7 +139,7 @@ def scrapeLessons(
 ) -> list[Lesson]:
     lessons: List[Lesson] = []
 
-    if curriculumList is str:
+    if isinstance(curriculumList, str):
         curriculumList = [curriculumList]
 
     for curriculum in curriculumList:
