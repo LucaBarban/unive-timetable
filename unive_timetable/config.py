@@ -1,5 +1,6 @@
 import logging as log
 import os
+import sys
 import pathlib
 import shutil
 from pathlib import Path
@@ -28,16 +29,22 @@ def _load_config() -> MappingProxyType[str, Any]:
     log.debug("Checking config file")
     home = pathlib.Path.home()
 
-    xdg_config: Path
+    app_config: Path
 
-    xdg_config_env: Any = os.getenv("XDG_CONFIG_HOME")
-    if xdg_config_env is not None:
-        xdg_config = Path(xdg_config_env)
-    else:
-        xdg_config = home / ".config"
+    app_config_env: Any
+    fallback_config_path: Path
+    match sys.platform:
+        case "win32":
+            app_config_env = os.getenv("APPCONFIG")
+            fallback_config_path = home / "AppData" / "Roaming"
+        case "linux":
+            app_config_env = os.getenv("XDG_CONFIG_HOME")
+            fallback_config_path = home / ".config"
+
+    app_config = Path(app_config_env) if app_config_env is not None else fallback_config_path
 
     config_paths: Tuple[Path, Path] = (
-        xdg_config / "unive-timetable.toml",
+        app_config / "unive-timetable.toml",
         home / ".unive-timetable.toml",
     )
 
