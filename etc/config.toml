@@ -3,16 +3,10 @@
 provider =
 # calendar where upload the time table
 calendar =
-# Accademic years: ["1"], ["2", "3"], etc..
-years =
-# course name, corresponding literal or list of both (useful if a subject is reported in only one of them)
-# "TECNOLOGIE E SCIENZE DELL'INFORMAZIONE" or "TSI"
-# "DATA SCIENCE" or "DS"
-# "EUROPEAN COMPUTER SCIENCE" or "ECS"
-# ["TSI", "DS"]
-curriculum =
 # Array of lesson to ignore when uploding (with support for regex)
-ignore = [ 'materia1', 'materia2.*' ]
+blacklist = [ 'materia1', 'materia2.*' ]
+# Array of lesson to include
+whitelist = [ 'materia1', 'materia2.*' ]
 # true if you want to update events that already happened, false otherwise
 updatePastEvents = false
 # Course code, it can be found between square brackets here -> https://www.unive.it/data/8321/

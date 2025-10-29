@@ -1,7 +1,8 @@
 import re
 from datetime import datetime
-from typing import List
+from typing import List, Dict
 
+import unive_timetable.config as cfg
 import requests
 from bs4 import BeautifulSoup
 from icalendar import Calendar
@@ -12,69 +13,99 @@ from unive_timetable.lesson import Lesson
 # then lessons that are held in different rooms at the same time will be merged
 
 
-def shouldIgnore(subject, ignore):
-    for x in ignore:
-        if re.match(x, subject):
-            return True
-    return False
+generaICSUrl = "https://www.unive.it/data/ajax/Didattica/generaics?cache=-1"
 
 
-def courseCodeToTimetablePage(courseCode: str) -> str:
-    urlCourse = f"https://www.unive.it/cdl/{courseCode}"  # main course's page
+def shouldIgnore(subject):
+    config = cfg.get()
+    blacklist = config["general"]["blacklist"]
+    whitelist = config["general"]["whitelist"]
 
-    soup = BeautifulSoup(
-        requests.get(urlCourse).content, "html.parser"
-    )  # initialize beautifulsoup
-
-    link = soup.find_all(
-        "a",
-        class_="list-group-item list-group-item-action",
-        string=lambda text: text and "orari" in text,
-    )  # get the button that go to the timetable page
-
-    if len(link) != 1:
-        raise Exception(
-            f"Didn't find the expected number of 'orari' links at {urlCourse} ({len(link)} found)"
-        )
-
-    urlRedirect = (
-        "https://www.unive.it" + link[0]["href"]
-    )  # url that redirects to the timetable page
-    urlData = requests.head(urlRedirect, allow_redirects=True)
-
-    return urlData.url
-
-
-def courseNameToLitteral(courseCode: str, curriculum: str, year: int) -> str:
-    url = courseCodeToTimetablePage(courseCode) + "/" + str(year)
-
-    soup = BeautifulSoup(
-        requests.get(url).content, "html.parser"
-    )  # initialize beautifulsoup
-
-    buttons = soup.find_all(
-        "a", class_="btn btn-danger"
-    )  # get all the "ics download" buttons
-
-    target_text = f"Genera calendario ICS ({curriculum})"
-    ics_url = ""
-
-    for button in buttons:
-        if button.text.strip() == target_text:
-            ics_url = button.get("href")  # extract the url of the ICS file
-            break
+    if whitelist:
+        for x in whitelist:
+            if re.match(x, subject):
+                return False
+        return True
     else:
-        raise Exception(f'No button "{target_text}" found at url ({url})')
+        for x in blacklist:
+            if re.match(x, subject):
+                return True
+        return False
 
-    url_parameters = ics_url.split("?")[1].split("&")  # extract the GET parameters
-    for param in url_parameters:  # find the one for the curriculum
-        splitted = param.split("=")
-        if splitted[0] == "curriculum":
-            return splitted[1]
 
-    raise Exception(
-        f"Couldn't get the curriculum's litteral from the button's url ({ics_url})"
+def formatSearchUrl(url: str, parameters: Dict[str, str]) -> str:
+    parametersString = "".join(f"&{k}={v}" for k, v in parameters.items())
+    return f"{url}?{parametersString}"
+
+
+def getParsedPage(url: str, post=False):
+    """
+    Returns the parser for the page and the url in case it did change due to a redirect
+    """
+    response = (
+        requests.get(url, allow_redirects=True)
+        if not post
+        else requests.post(url, allow_redirects=True)
     )
+    if response.status_code != 200:
+        raise Exception(f"Failed to get {url} (code: {response.status_code})")
+    parser = BeautifulSoup(response.content, "html.parser")
+    # if the url didn't change
+    return parser, response.url if url != response.url else url
+
+
+def getLessonsUrls(courseCode: str) -> List[str]:
+    lessonUrls: List[str] = []
+
+    ## Generate search url ##
+
+    searchPage, searchPageUrl = getParsedPage(
+        "https://www.unive.it/pag/ricercainsegnamenti"
+    )
+
+    # find search form
+    form = searchPage.find("form", id="form-ricercainsegnamenti")
+    if not form:
+        raise Exception(f"Didn't find the search form ({searchPageUrl})")
+
+    # search all url parameters in form
+    urlParameters = {}
+    for node in form.find_all(["input", "select"]):
+        if "id" in node.attrs:
+            urlParameters[node.attrs["id"]] = ""
+    # add other required parameters
+    urlParameters["cds"] = courseCode
+    urlParameters["cerca"] = "cerca"
+
+    searchUrlWithParams = formatSearchUrl(searchPageUrl, urlParameters)
+
+    ## Get lessons urls ##
+
+    lessonsList, _ = getParsedPage(searchUrlWithParams, post=True)
+
+    table = lessonsList.find("table", class_="table table-hover")
+    if not table:
+        raise Exception(f"Didn't found lessons table ({searchUrlWithParams})")
+
+    tableBody = table.find("tbody")
+    if not tableBody:
+        raise Exception(f"Found empty lessons table ({searchUrlWithParams})")
+
+    for row in tableBody.find_all("tr"):
+        cells = row.find_all(["td"])
+        linkTag = cells[0].find("a")
+        if not linkTag:
+            continue
+
+        text = linkTag.get_text(strip=True)
+        if shouldIgnore(text):
+            continue
+        href = linkTag.get("href")
+
+        lessonID = href.split("/")[-1]
+        lessonUrls.append(f"{generaICSUrl}&afid={lessonID}")
+
+    return lessonUrls
 
 
 def venevtToLesson(vevent) -> Lesson:
@@ -134,30 +165,47 @@ def venevtToLesson(vevent) -> Lesson:
     )
 
 
-def scrapeLessons(
-    courseCode: str, curriculumList: str | list[str], year: int, ignore: List[str]
-) -> list[Lesson]:
+def scrapeLessons(courseCode: str) -> List[Lesson]:
     lessons: List[Lesson] = []
+    ics_urls = getLessonsUrls(courseCode)
+    config = cfg.get()
 
-    if isinstance(curriculumList, str):
-        curriculumList = [curriculumList]
+    for lessonID in config["general"].get("injectedLessons", []):
+        ics_urls.append(f"{generaICSUrl}&afid={lessonID}")
 
-    for curriculum in curriculumList:
-        if len(curriculum) > 5:  # heuristic based on nothing
-            curriculum = courseNameToLitteral(courseCode, curriculum, year)
-
-        ics_url = f"https://www.unive.it/data/ajax/Didattica/generaics?cache=-1&cds={courseCode}&anno={year}&curriculum={curriculum}"
+    for ics_url in ics_urls:
         response = requests.get(ics_url)  # download the ICS file
 
         if response.status_code == 200:
-            calendar = Calendar.from_ical(
-                response.text
-            )  # parse the downloaded calendar
+            # parse the downloaded calendar
+            calendar = Calendar.from_ical(response.text)
 
             # convert each evento into the corresponding lesson
             for event in calendar.walk("vevent"):
                 lesson = venevtToLesson(event)
-                if shouldIgnore(lesson.getsubject(), ignore):
+                if shouldIgnore(lesson.getsubject()):
+                    continue
+                lessons.append(lesson)
+        else:
+            raise Exception(
+                f"Failed to download ICS from {ics_url} (satus: {response.status_code})"
+            )
+
+    return cleanupLessons(lessons)
+
+
+def scrapeLessonsFromCode(lessonCode: List[str]) -> List[Lesson]:
+    for ics_url in ics_urls:
+        response = requests.get(ics_url)  # download the ICS file
+
+        if response.status_code == 200:
+            # parse the downloaded calendar
+            calendar = Calendar.from_ical(response.text)
+
+            # convert each evento into the corresponding lesson
+            for event in calendar.walk("vevent"):
+                lesson = venevtToLesson(event)
+                if shouldIgnore(lesson.getsubject()):
                     continue
                 lessons.append(lesson)
         else:

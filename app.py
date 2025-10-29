@@ -18,14 +18,10 @@ if __name__ == "__main__":
     config = cfg.get()
 
     # url to scrape from
-    ignore = config["general"]["ignore"]
     courseCode = config["general"]["courseCode"]
-    curriculum = config["general"]["curriculum"]
     updatePastEvents = config["general"]["updatePastEvents"]
 
-    scrapedEvents: List[Lesson] = []
-    for year in config["general"]["years"]:
-        scrapedEvents = scrapedEvents + scrapeLessons(courseCode, curriculum, year, ignore)
+    scrapedEvents: List[Lesson] = scrapeLessons(courseCode)
     log.info(f"{len(scrapedEvents)} events found")
 
     provider: Provider
@@ -37,9 +33,7 @@ if __name__ == "__main__":
         case _:
             raise ValueError(f"No such provider: {config["general"]["provider"]}")
 
-    deleteCals, newCals = compareEvents(
-        scrapedEvents, provider.getEvents(), updatePastEvents
-    )
+    deleteCals, newCals = compareEvents(scrapedEvents, provider.getEvents())
 
     log.info(f"Found {len(newCals)} new Events and {len(deleteCals)} to delete")
     provider.deleteEvents(deleteCals)

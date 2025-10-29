@@ -41,7 +41,9 @@ def _load_config() -> MappingProxyType[str, Any]:
             app_config_env = os.getenv("XDG_CONFIG_HOME")
             fallback_config_path = home / ".config"
 
-    app_config = Path(app_config_env) if app_config_env is not None else fallback_config_path
+    app_config = (
+        Path(app_config_env) if app_config_env is not None else fallback_config_path
+    )
 
     config_paths: Tuple[Path, Path] = (
         app_config / "unive-timetable.toml",

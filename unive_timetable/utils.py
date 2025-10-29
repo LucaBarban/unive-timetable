@@ -1,4 +1,5 @@
 import logging as log
+import unive_timetable.config as cfg
 from datetime import datetime
 
 """
@@ -13,11 +14,13 @@ PastDate  UpdatePast  Do It!
 """
 
 
-def compareEvents(newcalendar, oldCalendar, updatePastEvents):
+def compareEvents(newcalendar, oldCalendar):
     deleteCalendar = []
     createCalendar = []
 
     now = datetime.now()
+
+    updatePastEvents = cfg.get()["general"]["updatePastEvents"]
 
     if not updatePastEvents:
         log.info("Comparing future events...")
