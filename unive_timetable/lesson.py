@@ -15,8 +15,8 @@ class Lesson:
         self.time = time.strip()  # from what time to what time the lesson will be held
         self.uid = uid  # event's uid
 
-    def setDoubleClass(self):
-        self.classes = "Aula 1 e 2"
+    def setDoubleClass(self, combinedRoomName: str):
+        self.classes = combinedRoomName
 
     def setSubject(self, newSubjectName):
         self.subject = newSubjectName

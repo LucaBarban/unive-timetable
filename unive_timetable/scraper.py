@@ -13,10 +13,17 @@ from typing import List, Dict
 from unive_timetable.lesson import Lesson
 
 
+double_class_pairs = {
+    frozenset(["Aula 1", "Aula 2"]): "Aula 1 e 2",
+    frozenset(["Laboratorio 3", "Laboratorio 5"]): "Laboratorio 3 e 5",
+}
+
+
+
 def shouldIgnore(subject):
     config = cfg.get()
-    blacklist = config["general"]["blacklist"]
-    whitelist = config["general"]["whitelist"]
+    blacklist = config["general"].get("blacklist")
+    whitelist = config["general"].get("whitelist")
 
     if whitelist:
         for x in whitelist:
@@ -113,19 +120,22 @@ def scrapeLessons(courseCode: str) -> List[Lesson]:
         if not insegnamento:
             continue
 
-        aula = auleMap[lezione["AULA_ID"]]
-        sede = sediMap[aula["SEDE_ID"]]
+        try:
+            aula = auleMap[lezione["AULA_ID"]]
+            sede = sediMap[aula["SEDE_ID"]]
 
-        subject = insegnamento["NOME"]
-        # Date is formatted like YYYY-MM-dd
-        _date = lezione["GIORNO"].split("-")
-        # We want dd-MM-YYYY
-        date = f"{_date[2]}/{_date[1]}/{_date[0]}"
-        activity = lezione["TIPO_ATTIVITA"]
-        prof = lezione["DOCENTI"].title()
-        location = sede["NOME"]
-        classes = aula["NOME"]
-        time = f"{lezione["INIZIO"]}-{lezione["FINE"]}"
+            subject = insegnamento["NOME"]
+            # Date is formatted like YYYY-MM-dd
+            _date = lezione["GIORNO"].split("-")
+            # We want dd-MM-YYYY
+            date = f"{_date[2]}/{_date[1]}/{_date[0]}"
+            activity = lezione["TIPO_ATTIVITA"]
+            prof = lezione["DOCENTI"].title()
+            location = sede["NOME"]
+            classes = aula["NOME"]
+            time = f"{lezione["INIZIO"]}-{lezione["FINE"]}"
+        except (AttributeError, KeyError) as e:
+            log.warning(f"Skipping lesson due to missing parameters ({e}): '{lezione}'")
 
         lessons.append(
             Lesson(
@@ -150,19 +160,34 @@ def cleanupLessons(lessons: List[Lesson]):
         )
     )  # sort the lessons (useful for the next step)
 
-    # read all lessons and "merge" the ones that are held in Aula 1 and Aula 2 at the same time, name included (eg. Lesson Classe 1 + Lesson Classe 2 = Lesson Classe 1,2)
-    lessonsbtr: List[Lesson] = []
+    # remove duplicated lessons (silly way, always uses __eq__)
+    lessons_clean = []
     for lesson in lessons:
+        if lesson not in lessons_clean:
+            lessons_clean.append(lesson)
+
+    # read all lessons and "merge" the ones that are held in the same rooms at the same time, name included (eg. Lesson Classe 1 + Lesson Classe 2 = Lesson Classe 1,2)
+    lessonsbtr: List[Lesson] = []
+    for lesson in lessons_clean:
         if (
             len(lessonsbtr) != 0
             and lessonsbtr[-1].getStartDateTime() == lesson.getStartDateTime()
             and lessonsbtr[-1].getprof() == lesson.getprof()
         ):
-            if lessonsbtr[-1].getclasses() in [
-                "Aula 1",
-                "Aula 2",
-            ] and lesson.getclasses() in ["Aula 1", "Aula 2"]:
-                lessonsbtr[-1].setDoubleClass()
+            
+
+            last_class = lessonsbtr[-1].getclasses()
+            current_class = lesson.getclasses()
+            
+            if last_class != current_class:
+                pair = frozenset([last_class, current_class])
+                
+                if pair in double_class_pairs:
+                    double_class_name = double_class_pairs[pair]
+                else:
+                    double_class_name = f"{last_class} e {current_class}"
+
+                lessonsbtr[-1].setDoubleClass(double_class_name)
                 tmpSubject = lessonsbtr[-1].getsubject().split(" ")
                 if len(tmpSubject) > 2 and tmpSubject[-2] in ["Cognomi", "Classe"]:
                     tmpNewSubject = " ".join(tmpSubject[:-1])
