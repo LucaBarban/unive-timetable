@@ -36,5 +36,6 @@ if __name__ == "__main__":
     deleteCals, newCals = compareEvents(scrapedEvents, provider.getEvents())
 
     log.info(f"Found {len(newCals)} new Events and {len(deleteCals)} to delete")
+
     provider.deleteEvents(deleteCals)
     provider.createEvents(newCals)

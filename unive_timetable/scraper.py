@@ -1,19 +1,16 @@
+# Scraper based of the mobile app API. The API is described here:
+# https://www.unive.it/pag/fileadmin/user_upload/ateneo/mobile/documenti/WebserviceCorsi-Insegnamenti-Orari-Aule-Sedi.pdf
+
+import json
 import re
-from datetime import datetime
-from typing import List, Dict
-
 import unive_timetable.config as cfg
-import requests
-from bs4 import BeautifulSoup
-from icalendar import Calendar
+import urllib.request
+import logging as log
 
+from datetime import datetime
+from pathlib import Path
+from typing import List, Dict
 from unive_timetable.lesson import Lesson
-
-# request the page from the url and scrapre the content via beautifulsoup4
-# then lessons that are held in different rooms at the same time will be merged
-
-
-generaICSUrl = "https://www.unive.it/data/ajax/Didattica/generaics?cache=-1"
 
 
 def shouldIgnore(subject):
@@ -33,185 +30,115 @@ def shouldIgnore(subject):
         return False
 
 
-def formatSearchUrl(url: str, parameters: Dict[str, str]) -> str:
-    parametersString = "".join(f"&{k}={v}" for k, v in parameters.items())
-    return f"{url}?{parametersString}"
+def downloadTable(name, output):
+    base_url = "https://apps.unive.it/sitows/didattica"
+    url = f"{base_url}/{name}"
+    chunk_size = 1024 * 1024 # 1MB
+
+    with urllib.request.urlopen(url) as response, open(output, "wb") as f:
+        while True:
+            chunk = response.read(chunk_size)
+            if not chunk:
+                break
+            f.write(chunk)
+
+    log.info(f"Downloaded API data for '{name}'")
 
 
-def getParsedPage(url: str, post=False):
-    """
-    Returns the parser for the page and the url in case it did change due to a redirect
-    """
-    response = (
-        requests.get(url, allow_redirects=True)
-        if not post
-        else requests.post(url, allow_redirects=True)
-    )
-    if response.status_code != 200:
-        raise Exception(f"Failed to get {url} (code: {response.status_code})")
-    parser = BeautifulSoup(response.content, "html.parser")
-    # if the url didn't change
-    return parser, response.url if url != response.url else url
+def getAPISchema():
+    schema = {}
+    cache_dir = Path(".cache")
 
+    if not cache_dir.exists():
+        cache_dir.mkdir(parents=True)
+        gitignore = cache_dir / ".gitignore"
+        gitignore.write_text("*")
 
-def getLessonsUrls(courseCode: str) -> List[str]:
-    lessonUrls: List[str] = []
+    tables = [
+        "corsiinsegnamenti",
+        "insegnamenti",
+        "lezioni",
+        "aule",
+        "sedi",
+    ]
 
-    ## Generate search url ##
+    for table in tables:
+        output_file = cache_dir / f"{table}.json"
 
-    searchPage, searchPageUrl = getParsedPage(
-        "https://www.unive.it/pag/ricercainsegnamenti"
-    )
+        if output_file.exists():
+            file_mtime = datetime.fromtimestamp(output_file.stat().st_mtime)
+            if file_mtime.date() < datetime.today().date():
+                downloadTable(table, output_file)
+            else:
+                log.info(f"Using cached API data for '{table}'")
+        else:
+            downloadTable(table, output_file)
 
-    # find search form
-    form = searchPage.find("form", id="form-ricercainsegnamenti")
-    if not form:
-        raise Exception(f"Didn't find the search form ({searchPageUrl})")
+        with open(output_file, "r") as f:
+            schema[table] = json.load(f)
 
-    # search all url parameters in form
-    urlParameters = {}
-    for node in form.find_all(["input", "select"]):
-        if "id" in node.attrs:
-            urlParameters[node.attrs["id"]] = ""
-    # add other required parameters
-    urlParameters["cds"] = courseCode
-    urlParameters["cerca"] = "cerca"
-
-    searchUrlWithParams = formatSearchUrl(searchPageUrl, urlParameters)
-
-    ## Get lessons urls ##
-
-    lessonsList, _ = getParsedPage(searchUrlWithParams, post=True)
-
-    table = lessonsList.find("table", class_="table table-hover")
-    if not table:
-        raise Exception(f"Didn't found lessons table ({searchUrlWithParams})")
-
-    tableBody = table.find("tbody")
-    if not tableBody:
-        raise Exception(f"Found empty lessons table ({searchUrlWithParams})")
-
-    for row in tableBody.find_all("tr"):
-        cells = row.find_all(["td"])
-        linkTag = cells[0].find("a")
-        if not linkTag:
-            continue
-
-        text = linkTag.get_text(strip=True)
-        if shouldIgnore(text):
-            continue
-        href = linkTag.get("href")
-
-        lessonID = href.split("/")[-1]
-        lessonUrls.append(f"{generaICSUrl}&afid={lessonID}")
-
-    return lessonUrls
-
-
-def venevtToLesson(vevent) -> Lesson:
-    summary = vevent.get("SUMMARY")
-
-    subject = summary.split(" - ")
-    # there is a " - Mod" lesson
-    if len(subject) == 3:
-        subject = f"{subject[0]} - {subject[1]}"
-    else:
-        subject = subject[0]
-
-    # format the start date as 'day/month/year'
-    date = vevent.get("DTSTART").dt.strftime("%d/%m/%Y")
-
-    # find the activity
-    activity = summary[len(subject) + 3 :].split(", ")[1]
-
-    # fin the professor's surname and name
-    prof = summary[len(subject) + 3 :].split(", ")[0].title()
-
-    # find time
-    start_time = vevent.get("DTSTART").dt.strftime("%H:%M")
-    end_time = vevent.get("DTEND").dt.strftime("%H:%M")
-    time = f"{start_time}-{end_time}"
-
-    # find location
-    location = vevent.get("LOCATION")
-    classes = ""
-    if location != "ALTRO Altro":
-        match = re.search(r"^(.*?)(?=\s+Campus)", location)
-        if match is None:
-            raise Exception(f"Couldn't parse the location of the room ({location})")
-        classes = match.group(1)
-        location = location[len(classes) + 1 :]
-    else:
-        location = ""
-
-    # match everything inside []
-    match = re.search(r"\[[^\]]*\]", subject)
-    if match is None:
-        raise Exception(f"Couldn't parse the course id ({subject})")
-    course_id = match.group()
-
-    # take only the subject part without the id (the minus - 1 is for the trailing space)
-    subject = subject[: len(subject) - len(course_id) - 1]
-
-    return Lesson(
-        subject,
-        date,
-        activity,
-        prof,
-        location,
-        classes,
-        time,
-        0,
-    )
+    return schema
 
 
 def scrapeLessons(courseCode: str) -> List[Lesson]:
     lessons: List[Lesson] = []
-    ics_urls = getLessonsUrls(courseCode)
     config = cfg.get()
 
-    for lessonID in config["general"].get("injectedLessons", []):
-        ics_urls.append(f"{generaICSUrl}&afid={lessonID}")
+    schema = getAPISchema()
 
-    for ics_url in ics_urls:
-        response = requests.get(ics_url)  # download the ICS file
+    # Get all 'insegnamenti' for a given code (e.g. CTR3)
+    corsiInsegnamentiMap = {}
+    for corso in schema["corsiinsegnamenti"]:
+        if corso["CDS_COD"] == courseCode:
+            corsiInsegnamentiMap[corso["AF_ID"]] = corso
 
-        if response.status_code == 200:
-            # parse the downloaded calendar
-            calendar = Calendar.from_ical(response.text)
+    # Make a map of sedi by their id
+    sediMap = {}
+    for sede in schema["sedi"]:
+        sediMap[sede["SEDE_ID"]] = sede
 
-            # convert each evento into the corresponding lesson
-            for event in calendar.walk("vevent"):
-                lesson = venevtToLesson(event)
-                if shouldIgnore(lesson.getsubject()):
-                    continue
-                lessons.append(lesson)
-        else:
-            raise Exception(
-                f"Failed to download ICS from {ics_url} (satus: {response.status_code})"
+    auleMap = {}
+    for aula in schema["aule"]:
+        auleMap[aula["AULA_ID"]] = aula
+
+    # Map every 'insegnamento' to it's argument ID
+    insegnamentiLezioniMap = {}
+    for insegnamento in schema["insegnamenti"]:
+        if shouldIgnore(insegnamento["NOME"]):
+            continue
+        insegnamentiLezioniMap[insegnamento["AR_ID"]] = insegnamento
+
+    for lezione in schema["lezioni"]:
+        insegnamento = insegnamentiLezioniMap.get(lezione["AR_ID"], None)
+        if not insegnamento:
+            continue
+
+        aula = auleMap[lezione["AULA_ID"]]
+        sede = sediMap[aula["SEDE_ID"]]
+
+        subject = insegnamento["NOME"]
+        # Date is formatted like YYYY-MM-dd
+        _date = lezione["GIORNO"].split("-")
+        # We want dd-MM-YYYY
+        date = f"{_date[2]}/{_date[1]}/{_date[0]}"
+        activity = lezione["TIPO_ATTIVITA"]
+        prof = lezione["DOCENTI"].title()
+        location = sede["NOME"]
+        classes = aula["NOME"]
+        time = f"{lezione["INIZIO"]}-{lezione["FINE"]}"
+
+        lessons.append(
+            Lesson(
+                subject,
+                date,
+                activity,
+                prof,
+                location,
+                classes,
+                time,
+                0,
             )
-
-    return cleanupLessons(lessons)
-
-
-def scrapeLessonsFromCode(lessonCode: List[str]) -> List[Lesson]:
-    for ics_url in ics_urls:
-        response = requests.get(ics_url)  # download the ICS file
-
-        if response.status_code == 200:
-            # parse the downloaded calendar
-            calendar = Calendar.from_ical(response.text)
-
-            # convert each evento into the corresponding lesson
-            for event in calendar.walk("vevent"):
-                lesson = venevtToLesson(event)
-                if shouldIgnore(lesson.getsubject()):
-                    continue
-                lessons.append(lesson)
-        else:
-            raise Exception(
-                f"Failed to download ICS from {ics_url} (satus: {response.status_code})"
-            )
+        )
 
     return cleanupLessons(lessons)
 
