@@ -1,12 +1,15 @@
+# CalDAV support
 caldav
+icalendar
+vobject
+
+# GCal support
 google-api-core
 google-api-python-client
 google-auth-oauthlib
-icalendar
+
+# Secret management
 keyring
+
+# Configuration language
 toml
-types-caldav
-types-icalendar
-types-requests
-types-toml
-vobject
