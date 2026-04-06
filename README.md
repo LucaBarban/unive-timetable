@@ -15,7 +15,7 @@ git clone https://github.com/LucaBarban/unive-timetable.git
 ## Running the script
 
 ```bash
-python3 app.py
+python3 -m unive_timetable
 ```
 
 ## Configuration
