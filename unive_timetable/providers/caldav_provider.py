@@ -17,6 +17,7 @@ class CalDAV(Provider):
         calendar_name = config["general"]["calendar"]
         url = config["caldav"]["url"]
         provider = config["caldav"]["provider"]
+        self.config = config
 
         username = config.get("caldav", {}).get("username")
         if username is None:
@@ -59,35 +60,39 @@ class CalDAV(Provider):
     def getEvents(self) -> List[Lesson]:
         events = []
         for event in self.all_events:
-            tuid = event
-            event = event.vobject_instance.vevent
-            tsummary = event.summary.value
-            tactivity = event.description.value.split(" in ")[0]
-            tclass = event.description.value.split(" in ")[1].split(" con ")[0]
-            tlocation = event.location.value
-            tprofessor = event.description.value.split(" con ")[1]
-            # Represent date in localtimezone format sinze by default CalDAV will
-            # output a datetime object in UTC timezone
-            _dtstart = event.dtstart.value.replace(tzinfo=timezone.utc).astimezone(
-                tz=None
-            )
-            _dtend = event.dtend.value.replace(tzinfo=timezone.utc).astimezone(tz=None)
-            tdate = str(_dtstart.strftime("%d/%m/%Y"))
-            ttime = (
-                str(_dtstart.strftime("%H:%M")) + "-" + str(_dtend.strftime("%H:%M"))
-            )
-            events.append(
-                Lesson(
-                    tsummary,
-                    tdate,
-                    tactivity,
-                    tprofessor,
-                    tlocation,
-                    tclass,
-                    ttime,
-                    tuid,
+            try:
+                tuid = event
+                event = event.vobject_instance.vevent
+                tsummary = event.summary.value
+                tactivity = event.description.value.split(" in ")[0]
+                tclass = event.description.value.split(" in ")[1].split(" con ")[0]
+                tlocation = event.location.value
+                tprofessor = event.description.value.split(" con ")[1]
+                # Represent date in localtimezone format sinze by default CalDAV will
+                # output a datetime object in UTC timezone
+                _dtstart = event.dtstart.value.replace(tzinfo=timezone.utc).astimezone(
+                    tz=None
                 )
-            )
+                _dtend = event.dtend.value.replace(tzinfo=timezone.utc).astimezone(tz=None)
+                tdate = str(_dtstart.strftime("%d/%m/%Y"))
+                ttime = (
+                    str(_dtstart.strftime("%H:%M")) + "-" + str(_dtend.strftime("%H:%M"))
+                )
+                events.append(
+                    Lesson(
+                        tsummary,
+                        tdate,
+                        tactivity,
+                        tprofessor,
+                        tlocation,
+                        tclass,
+                        ttime,
+                        tuid,
+                    )
+                )
+            except:
+                if self.config.purge_malformed:
+                    tuid.delete()
 
         return events
 

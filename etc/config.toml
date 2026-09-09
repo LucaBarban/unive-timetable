@@ -12,6 +12,8 @@ updatePastEvents = false
 # Course code, it can be found between square brackets here -> https://www.unive.it/data/8321/
 # eg. for "Informatica" it would be "CTR3"
 courseCode = 
+# Remove malformed events from calendar
+purge_malformed = false
 
 
 [gcal]
