@@ -22,3 +22,6 @@ python3 -m unive_timetable
 
 The script createas automaticly an **empty** config when you first run it.
 Before you run the script again you should populate the config with your info.
+
+# Notes on the data source
+If in the past we directly scraped the website, after finding the [open data webpage](https://www.unive.it/pag/13488/) we found out that an official API is provided and [documented here](https://www.unive.it/pag/fileadmin/user_upload/ateneo/mobile/documenti/WebserviceCorsi-Insegnamenti-Orari-Aule-Sedi.pdf). As far as we know, there are no filtering options, which means that the whole timetable for the entire university has to be downloaded. We implemented some caching to make reruns of the script faster.

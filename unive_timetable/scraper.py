@@ -93,11 +93,11 @@ def scrapeLessons(courseCode: str) -> List[Lesson]:
 
     schema = getAPISchema()
 
-    # Get all 'insegnamenti' for a given code (e.g. CTR3)
-    corsiInsegnamentiMap = {}
+    # Get all AF_IDs for a given courseCode (e.g. CTR3)
+    valid_af_ids = set()
     for corso in schema["corsiinsegnamenti"]:
         if corso["CDS_COD"] == courseCode:
-            corsiInsegnamentiMap[corso["AF_ID"]] = corso
+            valid_af_ids.add(corso["AF_ID"])
 
     # Make a map of sedi by their id
     sediMap = {}
@@ -108,9 +108,12 @@ def scrapeLessons(courseCode: str) -> List[Lesson]:
     for aula in schema["aule"]:
         auleMap[aula["AULA_ID"]] = aula
 
-    # Map every 'insegnamento' to it's argument ID
+    # Map every 'insegnamento' to its argument ID
     insegnamentiLezioniMap = {}
     for insegnamento in schema["insegnamenti"]:
+        if insegnamento.get("AF_ID") not in valid_af_ids:
+            continue
+
         if shouldIgnore(insegnamento["NOME"]):
             continue
         insegnamentiLezioniMap[insegnamento["AR_ID"]] = insegnamento
