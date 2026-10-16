@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Any
-from unive_timetable.lesson import Lesson
+from lesson import Lesson
 from types import MappingProxyType
 
 

@@ -8,8 +8,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
 from typing import List, Any
-from unive_timetable.lesson import Lesson
-from unive_timetable.provider import Provider
+from lesson import Lesson
+from provider import Provider
 from types import MappingProxyType
 
 # the implementaton is some sort of a remix from (conmments included :P):
