@@ -19,29 +19,24 @@ class CalDAV(Provider):
         provider = config["caldav"]["provider"]
         self.config = config
 
-        username = config.get("caldav", {}).get("username")
-        if username is None:
-            username = keyring.get_password(
-                "unive_timetable_username_" + provider, "username"
-            )
-        if username is None:
-            username = input("Enter your username for your caldav server: ")
-            keyring.set_password(
-                "unive_timetable_username_" + provider, "username", username
-            )
-            username = keyring.get_password(
-                "unive_timetable_username_" + provider, "username"
+        while True:
+            credential = keyring.get_credential(
+                f"unive_timetable_{provider}",
+                username=None,
             )
 
-        password = keyring.get_password(
-            "unive_timetable_password_" + provider, username
-        )
-        if password is None:
-            pswd = getpass.getpass("Enter your password for your caldav server: ")
-            keyring.set_password("unive_timetable_password_" + provider, username, pswd)
-            password = keyring.get_password("unive_timetable_" + provider, username)
+            if credential is None:
+                username = input("Enter your username for your caldav server: ")
+                pswd = getpass.getpass("Enter your password for your caldav server: ")
+                keyring.set_password(f"unive_timetable_{provider}", username, pswd)
+            else:
+                break
 
-        with DAVClient(url=url, username=username, password=password) as client:
+        with DAVClient(
+            url=url,
+            username=credential.username,
+            password=credential.password,
+        ) as client:
             my_principal = client.principal()
 
         try:
@@ -73,10 +68,14 @@ class CalDAV(Provider):
                 _dtstart = event.dtstart.value.replace(tzinfo=timezone.utc).astimezone(
                     tz=None
                 )
-                _dtend = event.dtend.value.replace(tzinfo=timezone.utc).astimezone(tz=None)
+                _dtend = event.dtend.value.replace(tzinfo=timezone.utc).astimezone(
+                    tz=None
+                )
                 tdate = str(_dtstart.strftime("%d/%m/%Y"))
                 ttime = (
-                    str(_dtstart.strftime("%H:%M")) + "-" + str(_dtend.strftime("%H:%M"))
+                    str(_dtstart.strftime("%H:%M"))
+                    + "-"
+                    + str(_dtend.strftime("%H:%M"))
                 )
                 events.append(
                     Lesson(
