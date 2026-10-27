@@ -1,5 +1,5 @@
 import logging as log
-import config as cfg
+import unive_timetable.config as cfg
 from datetime import datetime
 
 """

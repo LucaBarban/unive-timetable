@@ -12,6 +12,13 @@ grab a release zip file.
 git clone https://github.com/LucaBarban/unive-timetable.git
 # Or download the zip file from GitHub
 ```
+
+If you want to install the module locally with `pipx` you can run:
+
+```bash
+pipx install .
+```
+
 ## Running the script
 
 ```bash

@@ -1,15 +1,16 @@
 import logging as log
 from typing import List
 
-import config as cfg
-from lesson import Lesson
-from provider import Provider
-from providers.caldav_provider import CalDAV
-from providers.gcal_provider import GoogleCalendar
-from scraper import scrapeLessons
-from utils import compareEvents
+import unive_timetable.config as cfg
+from unive_timetable.lesson import Lesson
+from unive_timetable.provider import Provider
+from unive_timetable.providers.caldav_provider import CalDAV
+from unive_timetable.providers.gcal_provider import GoogleCalendar
+from unive_timetable.scraper import scrapeLessons
+from unive_timetable.utils import compareEvents
 
-if __name__ == "__main__":
+
+def main():
     log.basicConfig(
         level=log.INFO,
         format="%(asctime)s %(levelname)s %(message)s",
@@ -39,3 +40,7 @@ if __name__ == "__main__":
 
     provider.deleteEvents(deleteCals)
     provider.createEvents(newCals)
+
+
+if __name__ == "__main__":
+    main()

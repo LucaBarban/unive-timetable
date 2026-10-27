@@ -8,8 +8,8 @@ from caldav import DAVClient, error
 from types import MappingProxyType
 from typing import List, Any
 
-from lesson import Lesson
-from provider import Provider
+from unive_timetable.lesson import Lesson
+from unive_timetable.provider import Provider
 
 
 class CalDAV(Provider):

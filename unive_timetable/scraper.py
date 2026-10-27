@@ -3,14 +3,14 @@
 
 import json
 import re
-import config as cfg
+import unive_timetable.config as cfg
 import urllib.request
 import logging as log
 
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict
-from lesson import Lesson
+from unive_timetable.lesson import Lesson
 
 
 double_class_pairs = {
